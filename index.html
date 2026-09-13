@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Life Control</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #121212; color: #fff; margin: 0; padding: 20px; }
+    .card { background: #1e1e1e; padding: 20px; border-radius: 12px; margin-bottom: 16px; border: 1px solid #333; }
+    h2 { margin-top: 0; font-size: 1.2rem; color: #10b981; }
+    input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #2a2a2a; color: #fff; font-size: 1rem; }
+    button { background: #10b981; color: #000; font-weight: bold; border: none; cursor: pointer; }
+    button:active { opacity: 0.8; }
+    .hidden { display: none; }
+    .logout-btn { background: #ef4444; color: #fff; margin-top: 20px; }
+    #status-msg { margin-top: 10px; font-weight: bold; font-size: 0.95rem; text-align: center; }
+    #debug-box { background: #3b1111; border: 1px solid #ef4444; color: #fca5a5; padding: 10px; border-radius: 8px; font-size: 0.85rem; word-break: break-all; margin-bottom: 15px; display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Экранный вывод ошибок для мобильных устройств -->
+  <div id="debug-box"></div>
+
+  <!-- Блок Авторизации -->
+  <div id="auth-section" class="card">
+    <h2>Вход / Регистрация</h2>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Пароль">
+    <button onclick="signUp()">Зарегистрироваться</button>
+    <button onclick="signIn()" style="background:#3b82f6; color:#fff;">Войти</button>
+    
+    <div id="status-msg"></div>
+  </div>
+
+  <!-- Главный экран приложения -->
+  <div id="app-section" class="card hidden">
+    <h2>Life Control</h2>
+    <p>Вы вошли как: <b id="user-email"></b></p>
+    
+    <div style="margin-top:20px;">
+      <p>🟢 Бэкенд Supabase подключен!</p>
+      <p>🔒 Данные изолированы через RLS.</p>
+    </div>
+
+    <button class="logout-btn" onclick="signOut()">Выйти</button>
+  </div>
+
+  <script>
+    // Вывод системных ошибок на экран
+    window.onerror = function(msg, url, line) {
+      const dbg = document.getElementById('debug-box');
+      dbg.style.display = 'block';
+      dbg.innerHTML += `<b>Ошибка JS:</b> ${msg} (строка ${line})<br>`;
+      return false;
+    };
+
+    function showStatus(text, isError = false) {
+      const el = document.getElementById('status-msg');
+      el.style.color = isError ? '#ef4444' : '#10b981';
+      el.innerText = text;
+    }
+
+    const SUPABASE_URL = 'https://hahjitpsjfyyarbwuany.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_tJkQSQCdITF9sqrbGBvg4g_DCRAEZ4O';
+    
+    let dbClient;
+
+    try {
+      if (typeof supabase === 'undefined') {
+        showStatus('Ошибка: скрипт Supabase не загрузился (проверьте VPN/сеть)', true);
+      } else {
+        dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+    } catch (e) {
+      showStatus('Ошибка инициализации: ' + e.message, true);
+    }
+
+    async function checkUser() {
+      if (!dbClient) return;
+      try {
+        const { data: { user } } = await dbClient.auth.getUser();
+        if (user) {
+          document.getElementById('auth-section').classList.add('hidden');
+          document.getElementById('app-section').classList.remove('hidden');
+          document.getElementById('user-email').innerText = user.email;
+        } else {
+          document.getElementById('auth-section').classList.remove('hidden');
+          document.getElementById('app-section').classList.add('hidden');
+        }
+      } catch (e) {
+        showStatus('Ошибка сессии: ' + e.message, true);
+      }
+    }
+
+    async function signUp() {
+      if (!dbClient) return alert('Supabase не подключен!');
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      
+      if (!email || !password) {
+        showStatus('Заполните Email и пароль!', true);
+        return;
+      }
+
+      showStatus('Отправка запроса регистрации...');
+      try {
+        const { data, error } = await dbClient.auth.signUp({ email, password });
+        if (error) {
+          showStatus('Ошибка регистрации: ' + error.message, true);
+        } else {
+          showStatus('Успешно! Теперь нажмите "Войти".');
+        }
+      } catch (e) {
+        showStatus('Исключение: ' + e.message, true);
+      }
+    }
+
+    async function signIn() {
+      if (!dbClient) return alert('Supabase не подключен!');
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!email || !password) {
+        showStatus('Заполните Email и пароль!', true);
+        return;
+      }
+
+      showStatus('Выполняется вход...');
+      try {
+        const { data, error } = await dbClient.auth.signInWithPassword({ email, password });
+        if (error) {
+          showStatus('Ошибка входа: ' + error.message, true);
+        } else {
+          showStatus('Успешный вход!');
+          checkUser();
+        }
+      } catch (e) {
+        showStatus('Исключение: ' + e.message, true);
+      }
+    }
+
+    async function signOut() {
+      if (!dbClient) return;
+      await dbClient.auth.signOut();
+      checkUser();
+    }
+
+    if (dbClient) {
+      checkUser();
+    }
+  </script>
+</body>
+</html>
