@@ -9,7 +9,7 @@
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: #121212; color: #fff; margin: 0; padding: 15px; padding-bottom: 90px; }
     
-    .card { background: #1e1e1e; padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid #333; }
+    .card { background: #1e1e1e; padding: 16px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #333; }
     h2 { margin-top: 0; font-size: 1.2rem; color: #10b981; }
     input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px; border: 1px solid #333; background: #2a2a2a; color: #fff; font-size: 0.95rem; }
     button { background: #10b981; color: #000; font-weight: bold; border: none; cursor: pointer; }
@@ -19,6 +19,25 @@
     .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
     .app-title { font-size: 1.3rem; font-weight: bold; color: #10b981; margin: 0; }
 
+    /* Кнопка-переход в историю */
+    .history-link-card { background: #1e1e1e; padding: 14px 16px; border-radius: 12px; border: 1px solid #333; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; }
+    .history-link-card:active { background: #2a2a2a; }
+
+    /* Заголовок с кнопкой Назад */
+    .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+    .back-btn { background: none; border: none; color: #10b981; font-size: 1rem; width: auto; margin: 0; padding: 4px 8px; cursor: pointer; font-weight: bold; }
+
+    /* Микро-разделитель по дням */
+    .date-divider { font-size: 0.68rem; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #262626; margin: 10px 0 4px 0; padding-bottom: 2px; }
+
+    /* Ультракомпактные строки транзакций */
+    .list-item-compact { background: #1c1c1c; padding: 8px 10px; border-radius: 6px; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid #10b981; font-size: 0.85rem; }
+    .list-item-compact.expense { border-left-color: #ef4444; }
+    .delete-btn { background: none; border: none; color: #555; font-size: 0.8rem; padding: 2px 6px; width: auto; margin: 0; cursor: pointer; }
+    
+    .balance-box { background: #172554; border: 1px solid #1d4ed8; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 12px; }
+    .balance-val { font-size: 1.4rem; font-weight: bold; color: #60a5fa; }
+
     /* Микро-подвал */
     .mini-footer { text-align: center; font-size: 0.75rem; color: #666; padding: 10px 0; margin-top: 15px; border-top: 1px dashed #333; display: flex; justify-content: center; align-items: center; gap: 10px; }
     .mini-footer button { width: auto; padding: 4px 8px; font-size: 0.75rem; background: #333; color: #ef4444; margin: 0; }
@@ -27,14 +46,6 @@
     .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #181818; border-top: 1px solid #333; display: flex; justify-content: space-around; padding: 8px 0; z-index: 50; }
     .nav-btn { background: none; border: none; color: #888; font-size: 0.7rem; width: auto; margin: 0; padding: 4px; }
     .nav-btn.active { color: #10b981; font-weight: bold; }
-
-    /* Списки элементов */
-    .list-item { background: #262626; padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #10b981; }
-    .list-item.expense { border-left-color: #ef4444; }
-    .delete-btn { background: none; border: none; color: #666; font-size: 0.9rem; padding: 4px 8px; width: auto; margin: 0; cursor: pointer; }
-    
-    .balance-box { background: #172554; border: 1px solid #1d4ed8; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 12px; }
-    .balance-val { font-size: 1.4rem; font-weight: bold; color: #60a5fa; }
   </style>
 </head>
 <body>
@@ -56,7 +67,7 @@
       <div class="app-title">Life Control</div>
     </div>
 
-    <!-- Вкладка: Финансы -->
+    <!-- Вкладка: Финансы (Главный экран) -->
     <div id="tab-finance" class="tab-content">
       <div class="card">
         <h2>💰 Финансы</h2>
@@ -73,10 +84,20 @@
         <button onclick="addFinance()">Добавить запись</button>
       </div>
 
-      <div class="card">
-        <h2>История операций</h2>
-        <div id="finance-list">Загрузка...</div>
+      <!-- Переход в историю -->
+      <div class="history-link-card" onclick="openHistoryScreen()">
+        <span>📜 История операций</span>
+        <span style="color:#10b981; font-size:0.9rem;">Открыть ›</span>
       </div>
+    </div>
+
+    <!-- Отдельный экран: Последние операции -->
+    <div id="screen-history" class="tab-content hidden">
+      <div class="screen-header">
+        <button class="back-btn" onclick="closeHistoryScreen()">← Назад</button>
+        <h2 style="margin:0;">Последние операции</h2>
+      </div>
+      <div id="grouped-finance-list">Загрузка...</div>
     </div>
 
     <!-- Вкладка: Привычки -->
@@ -149,6 +170,17 @@
       if (evt) evt.currentTarget.classList.add('active');
     }
 
+    function openHistoryScreen() {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById('screen-history').classList.remove('hidden');
+      loadFullHistory();
+    }
+
+    function closeHistoryScreen() {
+      document.getElementById('screen-history').classList.add('hidden');
+      document.getElementById('tab-finance').classList.remove('hidden');
+    }
+
     async function checkUser() {
       const { data: { user } } = await dbClient.auth.getUser();
       if (user) {
@@ -156,7 +188,7 @@
         document.getElementById('auth-section').classList.add('hidden');
         document.getElementById('app-section').classList.remove('hidden');
         document.getElementById('user-email').innerText = user.email;
-        loadFinance();
+        loadFinanceBalance();
       } else {
         document.getElementById('auth-section').classList.remove('hidden');
         document.getElementById('app-section').classList.add('hidden');
@@ -194,47 +226,67 @@
       await dbClient.from('finance').insert([{ user_id: currentUser.id, amount, category, type }]);
       document.getElementById('fin-amount').value = '';
       document.getElementById('fin-category').value = '';
-      loadFinance();
+      loadFinanceBalance();
     }
 
     async function deleteFinance(id) {
       if (!confirm('Удалить эту запись?')) return;
       await dbClient.from('finance').delete().eq('id', id);
-      loadFinance();
+      loadFinanceBalance();
+      loadFullHistory();
     }
 
-    async function loadFinance() {
-      const { data } = await dbClient.from('finance').select('*').order('created_at', { ascending: false });
-      const container = document.getElementById('finance-list');
+    async function loadFinanceBalance() {
+      const { data } = await dbClient.from('finance').select('*');
       const balanceEl = document.getElementById('total-balance');
-      
-      if (!data || data.length === 0) {
-        container.innerHTML = '<p style="color:#666">Записей нет</p>';
-        balanceEl.innerText = '0 ₽';
-        return;
-      }
-      
+      if (!data || data.length === 0) { balanceEl.innerText = '0 ₽'; return; }
+
       let total = 0;
       data.forEach(item => {
         if (item.type === 'income') total += Number(item.amount);
         else total -= Number(item.amount);
       });
       balanceEl.innerText = `${total > 0 ? '+' : ''}${total} ₽`;
+    }
 
-      container.innerHTML = data.map(item => `
-        <div class="list-item ${item.type}">
-          <div>
-            <b>${item.category}</b>
-            <div style="font-size:0.75rem; color:#888;">${new Date(item.created_at).toLocaleDateString()}</div>
-          </div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-weight:bold; color:${item.type === 'income' ? '#10b981' : '#ef4444'}">
-              ${item.type === 'income' ? '+' : '-'}${item.amount} ₽
-            </span>
-            <button class="delete-btn" onclick="deleteFinance('${item.id}')">🗑️</button>
-          </div>
-        </div>
-      `).join('');
+    async function loadFullHistory() {
+      const { data } = await dbClient.from('finance').select('*').order('created_at', { ascending: false });
+      const container = document.getElementById('grouped-finance-list');
+      
+      if (!data || data.length === 0) {
+        container.innerHTML = '<p style="color:#666; text-align:center;">Записей нет</p>';
+        return;
+      }
+
+      // Группировка по дням
+      const groups = {};
+      data.forEach(item => {
+        const d = new Date(item.created_at);
+        const dateKey = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+        if (!groups[dateKey]) groups[dateKey] = [];
+        groups[dateKey].push(item);
+      });
+
+      let html = '';
+      for (const [date, items] of Object.entries(groups)) {
+        html += `<div class="date-divider">${date}</div>`;
+        items.forEach(item => {
+          html += `
+            <div class="list-item-compact ${item.type}">
+              <div>
+                <b>${item.category}</b>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-weight:bold; color:${item.type === 'income' ? '#10b981' : '#ef4444'}">
+                  ${item.type === 'income' ? '+' : '-'}${item.amount} ₽
+                </span>
+                <button class="delete-btn" onclick="deleteFinance('${item.id}')">🗑️</button>
+              </div>
+            </div>
+          `;
+        });
+      }
+      container.innerHTML = html;
     }
 
     checkUser();
