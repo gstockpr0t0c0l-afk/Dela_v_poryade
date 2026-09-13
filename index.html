@@ -9,35 +9,21 @@
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: #121212; color: #fff; margin: 0; padding: 15px; padding-bottom: 90px; }
     
-    /* ПАНЕЛЬ ПРИМЕРКИ ВАРИАНТОВ */
-    .demo-bar { background: #102a20; border: 1px solid #10b981; padding: 10px; border-radius: 12px; margin-bottom: 15px; text-align: center; }
-    .demo-bar p { margin: 0 0 8px 0; font-size: 0.8rem; color: #10b981; font-weight: bold; }
-    .demo-btns { display: flex; gap: 5px; justify-content: center; }
-    .demo-btn { width: auto; padding: 6px 12px; font-size: 0.8rem; background: #2a2a2a; border: 1px solid #444; color: #ccc; margin: 0; }
-    .demo-btn.active { background: #10b981; color: #000; font-weight: bold; border-color: #10b981; }
-
     .card { background: #1e1e1e; padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid #333; }
     h2 { margin-top: 0; font-size: 1.2rem; color: #10b981; }
     input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px; border: 1px solid #333; background: #2a2a2a; color: #fff; font-size: 0.95rem; }
     button { background: #10b981; color: #000; font-weight: bold; border: none; cursor: pointer; }
     button:active { opacity: 0.8; }
     .hidden { display: none !important; }
-    .logout-btn { background: #ef4444; color: #fff; margin-top: 10px; }
     
-    /* ВАРИАНТ 1: Шапка и Аватарка */
-    .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: relative; }
-    .app-title { font-size: 1.3rem; font-weight: bold; color: #10b981; margin: 0; user-select: none; }
-    .avatar-btn { width: 36px; height: 36px; border-radius: 50%; background: #3b82f6; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; border: none; margin: 0; cursor: pointer; }
-    .avatar-popover { position: absolute; top: 45px; right: 0; background: #262626; border: 1px solid #444; padding: 12px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 100; width: 220px; }
+    .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .app-title { font-size: 1.3rem; font-weight: bold; color: #10b981; margin: 0; }
 
-    /* ВАРИАНТ 3: Выпадающая шторка */
-    .header-drawer { background: #222; border: 1px solid #3b82f6; border-radius: 10px; padding: 12px; margin-bottom: 15px; text-align: center; }
-
-    /* ВАРИАНТ 4: Микро-подвал */
+    /* Микро-подвал */
     .mini-footer { text-align: center; font-size: 0.75rem; color: #666; padding: 10px 0; margin-top: 15px; border-top: 1px dashed #333; display: flex; justify-content: center; align-items: center; gap: 10px; }
     .mini-footer button { width: auto; padding: 4px 8px; font-size: 0.75rem; background: #333; color: #ef4444; margin: 0; }
 
-    /* НИЖНЕЕ МЕНЮ */
+    /* Нижнее меню */
     .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #181818; border-top: 1px solid #333; display: flex; justify-content: space-around; padding: 8px 0; z-index: 50; }
     .nav-btn { background: none; border: none; color: #888; font-size: 0.7rem; width: auto; margin: 0; padding: 4px; }
     .nav-btn.active { color: #10b981; font-weight: bold; }
@@ -45,6 +31,10 @@
     /* Списки элементов */
     .list-item { background: #262626; padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #10b981; }
     .list-item.expense { border-left-color: #ef4444; }
+    .delete-btn { background: none; border: none; color: #666; font-size: 0.9rem; padding: 4px 8px; width: auto; margin: 0; cursor: pointer; }
+    
+    .balance-box { background: #172554; border: 1px solid #1d4ed8; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 12px; }
+    .balance-val { font-size: 1.4rem; font-weight: bold; color: #60a5fa; }
   </style>
 </head>
 <body>
@@ -61,43 +51,21 @@
 
   <!-- Главное приложение -->
   <div id="app-section" class="hidden">
-    
-    <!-- Панель интерактивной примерки вариантов -->
-    <div class="demo-bar">
-      <p id="demo-title">🎨 Вариант 1: Компактная аватарка справа</p>
-      <div class="demo-btns">
-        <button class="demo-btn active" onclick="setDemoVariant(1)">1</button>
-        <button class="demo-btn" onclick="setDemoVariant(2)">2</button>
-        <button class="demo-btn" onclick="setDemoVariant(3)">3</button>
-        <button class="demo-btn" onclick="setDemoVariant(4)">4</button>
-        <button class="demo-btn" onclick="setDemoVariant(5)">5</button>
-      </div>
-    </div>
 
-    <!-- Шапка приложения -->
     <div class="app-header">
-      <div id="app-title-text" class="app-title" onclick="handleTitleClick()">Life Control</div>
-      
-      <!-- Вариант 1: Аватарка -->
-      <button id="v1-avatar" class="avatar-btn" onclick="toggleAvatarMenu()">I</button>
-      <div id="v1-popover" class="avatar-popover hidden">
-        <p style="margin:0 0 8px 0; font-size:0.8rem; color:#aaa; word-break:break-all;" id="v1-email"></p>
-        <button class="logout-btn" onclick="signOut()" style="margin:0; padding:8px;">Выйти</button>
-      </div>
-    </div>
-
-    <!-- Вариант 3: Выпадающая шторка -->
-    <div id="v3-drawer" class="header-drawer hidden">
-      <p style="margin:0 0 8px 0; font-size:0.85rem;" id="v3-email"></p>
-      <button class="logout-btn" onclick="signOut()" style="width:auto; padding:6px 15px; margin:0;">Выйти из аккаунта</button>
+      <div class="app-title">Life Control</div>
     </div>
 
     <!-- Вкладка: Финансы -->
     <div id="tab-finance" class="tab-content">
       <div class="card">
         <h2>💰 Финансы</h2>
+        <div class="balance-box">
+          <div style="font-size:0.8rem; color:#93c5fd;">Итоговый баланс</div>
+          <div id="total-balance" class="balance-val">0 ₽</div>
+        </div>
         <input type="number" id="fin-amount" placeholder="Сумма (руб.)">
-        <input type="text" id="fin-category" placeholder="Категория (Еда, Заплата...)">
+        <input type="text" id="fin-category" placeholder="Категория (Еда, Зарплата...)">
         <select id="fin-type">
           <option value="expense">Расход</option>
           <option value="income">Доход</option>
@@ -150,18 +118,9 @@
       </div>
     </div>
 
-    <!-- Вкладка: Вариант 2 (Отдельная вкладка Профиль) -->
-    <div id="tab-profile" class="tab-content hidden">
-      <div class="card">
-        <h2>👤 Мой профиль</h2>
-        <p style="margin-bottom:15px;">Вы вошли как: <b id="v2-email" style="color:#10b981;"></b></p>
-        <button class="logout-btn" onclick="signOut()">Выйти из аккаунта</button>
-      </div>
-    </div>
-
-    <!-- Вариант 4: Микро-подвал в самом низу -->
-    <div id="v4-footer" class="mini-footer hidden">
-      <span id="v4-email"></span>
+    <!-- Микро-подвал -->
+    <div class="mini-footer">
+      <span id="user-email"></span>
       <button onclick="signOut()">Выйти</button>
     </div>
 
@@ -171,8 +130,6 @@
       <button class="nav-btn" onclick="switchTab('habits', event)">🎯<br>Привычки</button>
       <button class="nav-btn" onclick="switchTab('media', event)">🎬<br>Медиа</button>
       <button class="nav-btn" onclick="switchTab('events', event)">📅<br>События</button>
-      <!-- Кнопка 5-й вкладки (для варианта 2) -->
-      <button id="v2-nav-btn" class="nav-btn hidden" onclick="switchTab('profile', event)">👤<br>Профиль</button>
     </div>
 
   </div>
@@ -183,75 +140,7 @@
     const dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUser = null;
-    let activeVariant = 1;
 
-    // --- ЛОГИКА ИНТЕРАКТИВНОЙ ПРИМЕРКИ ---
-    function setDemoVariant(num) {
-      activeVariant = num;
-      document.querySelectorAll('.demo-btn').forEach((btn, idx) => {
-        btn.classList.toggle('active', idx + 1 === num);
-      });
-
-      // Скрываем все элементы вариантов
-      document.getElementById('v1-avatar').classList.add('hidden');
-      document.getElementById('v1-popover').classList.add('hidden');
-      document.getElementById('v3-drawer').classList.add('hidden');
-      document.getElementById('v4-footer').classList.add('hidden');
-      document.getElementById('v2-nav-btn').classList.add('hidden');
-
-      const titleEl = document.getElementById('app-title-text');
-      const infoText = document.getElementById('demo-title');
-
-      if (num === 1) {
-        infoText.innerText = '🎨 Вариант 1: Компактная аватарка справа (нажми на синий кружок "I")';
-        document.getElementById('v1-avatar').classList.remove('hidden');
-        titleEl.innerText = 'Life Control';
-      } else if (num === 2) {
-        infoText.innerText = '🎨 Вариант 2: Отдельная вкладка "👤 Профиль" в нижнем меню';
-        document.getElementById('v2-nav-btn').classList.remove('hidden');
-        titleEl.innerText = 'Life Control';
-      } else if (num === 3) {
-        infoText.innerText = '🎨 Вариант 3: Выпадающая шторка (нажми на заголовок "Life Control ▾")';
-        titleEl.innerText = 'Life Control ▾';
-      } else if (num === 4) {
-        infoText.innerText = '🎨 Вариант 4: Микро-подвал (аккуратная строчка внизу над меню)';
-        document.getElementById('v4-footer').classList.remove('hidden');
-        titleEl.innerText = 'Life Control';
-      } else if (num === 5) {
-        infoText.innerText = '🎨 Вариант 5: Скрытый режим (нажмите и удерживайте заголовок 2 сек.)';
-        titleEl.innerText = 'Life Control';
-      }
-
-      if (num !== 2 && document.getElementById('tab-profile').classList.contains('hidden') === false) {
-        switchTab('finance');
-      }
-    }
-
-    function toggleAvatarMenu() {
-      document.getElementById('v1-popover').classList.toggle('hidden');
-    }
-
-    function handleTitleClick() {
-      if (activeVariant === 3) {
-        document.getElementById('v3-drawer').classList.toggle('hidden');
-      }
-    }
-
-    // Зажатие заголовка для Варианта 5
-    let pressTimer;
-    const titleEl = document.getElementById('app-title-text');
-    titleEl.addEventListener('touchstart', () => {
-      if (activeVariant === 5) {
-        pressTimer = setTimeout(() => {
-          if (confirm(`Вы вошли как ${currentUser?.email}\nХотите выйти из аккаунта?`)) {
-            signOut();
-          }
-        }, 1500);
-      }
-    });
-    titleEl.addEventListener('touchend', () => clearTimeout(pressTimer));
-
-    // --- ОСНОВНАЯ НАВИГАЦИЯ И БАЗА ---
     function switchTab(tabName, evt) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -266,15 +155,7 @@
         currentUser = user;
         document.getElementById('auth-section').classList.add('hidden');
         document.getElementById('app-section').classList.remove('hidden');
-        
-        // Заполняем email во всех вариантах
-        document.getElementById('v1-email').innerText = user.email;
-        document.getElementById('v2-email').innerText = user.email;
-        document.getElementById('v3-email').innerText = user.email;
-        document.getElementById('v4-email').innerText = user.email;
-        document.getElementById('v1-avatar').innerText = user.email[0].toUpperCase();
-
-        setDemoVariant(1);
+        document.getElementById('user-email').innerText = user.email;
         loadFinance();
       } else {
         document.getElementById('auth-section').classList.remove('hidden');
@@ -316,19 +197,41 @@
       loadFinance();
     }
 
+    async function deleteFinance(id) {
+      if (!confirm('Удалить эту запись?')) return;
+      await dbClient.from('finance').delete().eq('id', id);
+      loadFinance();
+    }
+
     async function loadFinance() {
       const { data } = await dbClient.from('finance').select('*').order('created_at', { ascending: false });
       const container = document.getElementById('finance-list');
-      if (!data || data.length === 0) return container.innerHTML = '<p style="color:#666">Записей нет</p>';
+      const balanceEl = document.getElementById('total-balance');
       
+      if (!data || data.length === 0) {
+        container.innerHTML = '<p style="color:#666">Записей нет</p>';
+        balanceEl.innerText = '0 ₽';
+        return;
+      }
+      
+      let total = 0;
+      data.forEach(item => {
+        if (item.type === 'income') total += Number(item.amount);
+        else total -= Number(item.amount);
+      });
+      balanceEl.innerText = `${total > 0 ? '+' : ''}${total} ₽`;
+
       container.innerHTML = data.map(item => `
         <div class="list-item ${item.type}">
           <div>
             <b>${item.category}</b>
             <div style="font-size:0.75rem; color:#888;">${new Date(item.created_at).toLocaleDateString()}</div>
           </div>
-          <div style="font-weight:bold; color:${item.type === 'income' ? '#10b981' : '#ef4444'}">
-            ${item.type === 'income' ? '+' : '-'}${item.amount} ₽
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-weight:bold; color:${item.type === 'income' ? '#10b981' : '#ef4444'}">
+              ${item.type === 'income' ? '+' : '-'}${item.amount} ₽
+            </span>
+            <button class="delete-btn" onclick="deleteFinance('${item.id}')">🗑️</button>
           </div>
         </div>
       `).join('');
