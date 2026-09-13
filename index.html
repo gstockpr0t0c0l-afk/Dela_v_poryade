@@ -7,150 +7,297 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: #121212; color: #fff; margin: 0; padding: 20px; }
-    .card { background: #1e1e1e; padding: 20px; border-radius: 12px; margin-bottom: 16px; border: 1px solid #333; }
+    body { background: #121212; color: #fff; margin: 0; padding: 15px; padding-bottom: 80px; }
+    .card { background: #1e1e1e; padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid #333; }
     h2 { margin-top: 0; font-size: 1.2rem; color: #10b981; }
-    input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #2a2a2a; color: #fff; font-size: 1rem; }
+    input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px; border: 1px solid #333; background: #2a2a2a; color: #fff; font-size: 0.95rem; }
     button { background: #10b981; color: #000; font-weight: bold; border: none; cursor: pointer; }
     button:active { opacity: 0.8; }
     .hidden { display: none; }
-    .logout-btn { background: #ef4444; color: #fff; margin-top: 20px; }
-    #status-msg { margin-top: 10px; font-weight: bold; font-size: 0.95rem; text-align: center; }
-    #debug-box { background: #3b1111; border: 1px solid #ef4444; color: #fca5a5; padding: 10px; border-radius: 8px; font-size: 0.85rem; word-break: break-all; margin-bottom: 15px; display: none; }
+    .logout-btn { background: #ef4444; color: #fff; margin-top: 10px; }
+    
+    /* Нижнее меню навигации */
+    .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #181818; border-top: 1px solid #333; display: flex; justify-content: space-around; padding: 10px 0; }
+    .nav-btn { background: none; border: none; color: #888; font-size: 0.75rem; width: auto; margin: 0; padding: 5px; }
+    .nav-btn.active { color: #10b981; font-weight: bold; }
+
+    /* Списки элементов */
+    .list-item { background: #262626; padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #10b981; }
+    .list-item.expense { border-left-color: #ef4444; }
+    .badge { background: #333; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; }
   </style>
 </head>
 <body>
 
-  <!-- Экранный вывод ошибок для мобильных устройств -->
-  <div id="debug-box"></div>
-
-  <!-- Блок Авторизации -->
+  <!-- Экран авторизации -->
   <div id="auth-section" class="card">
     <h2>Вход / Регистрация</h2>
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="password" placeholder="Пароль">
     <button onclick="signUp()">Зарегистрироваться</button>
     <button onclick="signIn()" style="background:#3b82f6; color:#fff;">Войти</button>
-    
-    <div id="status-msg"></div>
+    <div id="status-msg" style="margin-top:10px; font-size:0.85rem; text-align:center;"></div>
   </div>
 
-  <!-- Главный экран приложения -->
-  <div id="app-section" class="card hidden">
-    <h2>Life Control</h2>
-    <p>Вы вошли как: <b id="user-email"></b></p>
+  <!-- Главное приложение -->
+  <div id="app-section" class="hidden">
     
-    <div style="margin-top:20px;">
-      <p>🟢 Бэкенд Supabase подключен!</p>
-      <p>🔒 Данные изолированы через RLS.</p>
+    <!-- Вкладка: Финансы -->
+    <div id="tab-finance" class="tab-content">
+      <div class="card">
+        <h2>💰 Финансы</h2>
+        <input type="number" id="fin-amount" placeholder="Сумма (руб.)">
+        <input type="text" id="fin-category" placeholder="Категория (Еда, Заплата...)">
+        <select id="fin-type">
+          <option value="expense">Расход</option>
+          <option value="income">Доход</option>
+        </select>
+        <button onclick="addFinance()">Добавить запись</button>
+      </div>
+
+      <div class="card">
+        <h2>История операций</h2>
+        <div id="finance-list">Загрузка...</div>
+      </div>
     </div>
 
-    <button class="logout-btn" onclick="signOut()">Выйти</button>
+    <!-- Вкладка: Привычки -->
+    <div id="tab-habits" class="tab-content hidden">
+      <div class="card">
+        <h2>🎯 Привычки</h2>
+        <input type="text" id="habit-title" placeholder="Название привычки">
+        <button onclick="addHabit()">Добавить привычку</button>
+      </div>
+
+      <div class="card">
+        <h2>Мои привычки</h2>
+        <div id="habits-list">Загрузка...</div>
+      </div>
+    </div>
+
+    <!-- Вкладка: Медиа -->
+    <div id="tab-media" class="tab-content hidden">
+      <div class="card">
+        <h2>🎬 Медиа-лог</h2>
+        <input type="text" id="media-title" placeholder="Название (фильм, книга, игра)">
+        <select id="media-type">
+          <option value="movie">Фильм / Сериал</option>
+          <option value="book">Книга</option>
+          <option value="game">Игра</option>
+        </select>
+        <input type="number" id="media-rating" placeholder="Оценка (1-10)" min="1" max="10">
+        <button onclick="addMedia()">Сохранить</button>
+      </div>
+
+      <div class="card">
+        <h2>Просмотрено / Прочитано</h2>
+        <div id="media-list">Загрузка...</div>
+      </div>
+    </div>
+
+    <!-- Вкладка: События -->
+    <div id="tab-events" class="tab-content hidden">
+      <div class="card">
+        <h2>📅 События / Задачи</h2>
+        <input type="text" id="event-title" placeholder="Что нужно сделать / Встреча">
+        <input type="datetime-local" id="event-date">
+        <button onclick="addEvent()">Создать событие</button>
+      </div>
+
+      <div class="card">
+        <h2>Ближайшие события</h2>
+        <div id="events-list">Загрузка...</div>
+      </div>
+    </div>
+
+    <!-- Профиль и Выход -->
+    <div class="card" style="margin-top:20px;">
+      <p style="margin:0; font-size:0.85rem; color:#888;">Аккаунт: <b id="user-email" style="color:#fff;"></b></p>
+      <button class="logout-btn" onclick="signOut()">Выйти</button>
+    </div>
+
+    <!-- Нижнее меню -->
+    <div class="nav-bar">
+      <button class="nav-btn active" onclick="switchTab('finance')">💰<br>Финансы</button>
+      <button class="nav-btn" onclick="switchTab('habits')">🎯<br>Привычки</button>
+      <button class="nav-btn" onclick="switchTab('media')">🎬<br>Медиа</button>
+      <button class="nav-btn" onclick="switchTab('events')">📅<br>События</button>
+    </div>
+
   </div>
 
   <script>
-    // Вывод системных ошибок на экран
-    window.onerror = function(msg, url, line) {
-      const dbg = document.getElementById('debug-box');
-      dbg.style.display = 'block';
-      dbg.innerHTML += `<b>Ошибка JS:</b> ${msg} (строка ${line})<br>`;
-      return false;
-    };
-
-    function showStatus(text, isError = false) {
-      const el = document.getElementById('status-msg');
-      el.style.color = isError ? '#ef4444' : '#10b981';
-      el.innerText = text;
-    }
-
     const SUPABASE_URL = 'https://hahjitpsjfyyarbwuany.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_tJkQSQCdITF9sqrbGBvg4g_DCRAEZ4O';
-    
-    let dbClient;
+    const dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    try {
-      if (typeof supabase === 'undefined') {
-        showStatus('Ошибка: скрипт Supabase не загрузился (проверьте VPN/сеть)', true);
-      } else {
-        dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      }
-    } catch (e) {
-      showStatus('Ошибка инициализации: ' + e.message, true);
+    let currentUser = null;
+
+    function showStatus(txt, err = false) {
+      const el = document.getElementById('status-msg');
+      if (el) { el.style.color = err ? '#ef4444' : '#10b981'; el.innerText = txt; }
+    }
+
+    // Навигация
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+      event.currentTarget.classList.add('active');
     }
 
     async function checkUser() {
-      if (!dbClient) return;
-      try {
-        const { data: { user } } = await dbClient.auth.getUser();
-        if (user) {
-          document.getElementById('auth-section').classList.add('hidden');
-          document.getElementById('app-section').classList.remove('hidden');
-          document.getElementById('user-email').innerText = user.email;
-        } else {
-          document.getElementById('auth-section').classList.remove('hidden');
-          document.getElementById('app-section').classList.add('hidden');
-        }
-      } catch (e) {
-        showStatus('Ошибка сессии: ' + e.message, true);
+      const { data: { user } } = await dbClient.auth.getUser();
+      if (user) {
+        currentUser = user;
+        document.getElementById('auth-section').classList.add('hidden');
+        document.getElementById('app-section').classList.remove('hidden');
+        document.getElementById('user-email').innerText = user.email;
+        loadAllData();
+      } else {
+        document.getElementById('auth-section').classList.remove('hidden');
+        document.getElementById('app-section').classList.add('hidden');
       }
     }
 
     async function signUp() {
-      if (!dbClient) return alert('Supabase не подключен!');
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
-      
-      if (!email || !password) {
-        showStatus('Заполните Email и пароль!', true);
-        return;
-      }
-
-      showStatus('Отправка запроса регистрации...');
-      try {
-        const { data, error } = await dbClient.auth.signUp({ email, password });
-        if (error) {
-          showStatus('Ошибка регистрации: ' + error.message, true);
-        } else {
-          showStatus('Успешно! Теперь нажмите "Войти".');
-        }
-      } catch (e) {
-        showStatus('Исключение: ' + e.message, true);
-      }
+      const { error } = await dbClient.auth.signUp({ email, password });
+      if (error) showStatus(error.message, true);
+      else showStatus('Регистрация успешна! Нажмите "Войти".');
     }
 
     async function signIn() {
-      if (!dbClient) return alert('Supabase не подключен!');
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
-
-      if (!email || !password) {
-        showStatus('Заполните Email и пароль!', true);
-        return;
-      }
-
-      showStatus('Выполняется вход...');
-      try {
-        const { data, error } = await dbClient.auth.signInWithPassword({ email, password });
-        if (error) {
-          showStatus('Ошибка входа: ' + error.message, true);
-        } else {
-          showStatus('Успешный вход!');
-          checkUser();
-        }
-      } catch (e) {
-        showStatus('Исключение: ' + e.message, true);
-      }
+      const { error } = await dbClient.auth.signInWithPassword({ email, password });
+      if (error) showStatus(error.message, true);
+      else checkUser();
     }
 
     async function signOut() {
-      if (!dbClient) return;
       await dbClient.auth.signOut();
       checkUser();
     }
 
-    if (dbClient) {
-      checkUser();
+    // --- ФИНАНСЫ ---
+    async function addFinance() {
+      const amount = parseFloat(document.getElementById('fin-amount').value);
+      const category = document.getElementById('fin-category').value.trim();
+      const type = document.getElementById('fin-type').value;
+      if (!amount || !category) return alert('Заполните сумму и категорию');
+
+      await dbClient.from('finance').insert([{ user_id: currentUser.id, amount, category, type }]);
+      document.getElementById('fin-amount').value = '';
+      document.getElementById('fin-category').value = '';
+      loadFinance();
     }
+
+    async function loadFinance() {
+      const { data } = await dbClient.from('finance').select('*').order('created_at', { ascending: false });
+      const container = document.getElementById('finance-list');
+      if (!data || data.length === 0) return container.innerHTML = '<p style="color:#666">Записей пока нет</p>';
+      
+      container.innerHTML = data.map(item => `
+        <div class="list-item ${item.type}">
+          <div>
+            <b>${item.category}</b>
+            <div style="font-size:0.75rem; color:#888;">${new Date(item.created_at).toLocaleDateString()}</div>
+          </div>
+          <div style="font-weight:bold; color:${item.type === 'income' ? '#10b981' : '#ef4444'}">
+            ${item.type === 'income' ? '+' : '-'}${item.amount} ₽
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // --- ПРИВЫЧКИ ---
+    async function addHabit() {
+      const title = document.getElementById('habit-title').value.trim();
+      if (!title) return alert('Введите название');
+
+      await dbClient.from('habits').insert([{ user_id: currentUser.id, title }]);
+      document.getElementById('habit-title').value = '';
+      loadHabits();
+    }
+
+    async function loadHabits() {
+      const { data } = await dbClient.from('habits').select('*').order('created_at', { ascending: false });
+      const container = document.getElementById('habits-list');
+      if (!data || data.length === 0) return container.innerHTML = '<p style="color:#666">Привычек пока нет</p>';
+
+      container.innerHTML = data.map(item => `
+        <div class="list-item">
+          <span>${item.title}</span>
+          <span class="badge">🔥 0 дней</span>
+        </div>
+      `).join('');
+    }
+
+    // --- МЕДИА ---
+    async function addMedia() {
+      const title = document.getElementById('media-title').value.trim();
+      const type = document.getElementById('media-type').value;
+      const rating = parseInt(document.getElementById('media-rating').value) || 0;
+      if (!title) return alert('Введите название');
+
+      await dbClient.from('media_logs').insert([{ user_id: currentUser.id, title, type, rating }]);
+      document.getElementById('media-title').value = '';
+      loadMedia();
+    }
+
+    async function loadMedia() {
+      const { data } = await dbClient.from('media_logs').select('*').order('created_at', { ascending: false });
+      const container = document.getElementById('media-list');
+      if (!data || data.length === 0) return container.innerHTML = '<p style="color:#666">Список пуст</p>';
+
+      container.innerHTML = data.map(item => `
+        <div class="list-item">
+          <div>
+            <b>${item.title}</b>
+            <div style="font-size:0.75rem; color:#888;">${item.type}</div>
+          </div>
+          <span class="badge">⭐ ${item.rating}/10</span>
+        </div>
+      `).join('');
+    }
+
+    // --- СОБЫТИЯ ---
+    async function addEvent() {
+      const title = document.getElementById('event-title').value.trim();
+      const event_date = document.getElementById('event-date').value;
+      if (!title) return alert('Введите название события');
+
+      await dbClient.from('events').insert([{ user_id: currentUser.id, title, event_date }]);
+      document.getElementById('event-title').value = '';
+      loadEvents();
+    }
+
+    async function loadEvents() {
+      const { data } = await dbClient.from('events').select('*').order('event_date', { ascending: true });
+      const container = document.getElementById('events-list');
+      if (!data || data.length === 0) return container.innerHTML = '<p style="color:#666">Событий нет</p>';
+
+      container.innerHTML = data.map(item => `
+        <div class="list-item">
+          <div>
+            <b>${item.title}</b>
+            <div style="font-size:0.75rem; color:#888;">${item.event_date ? new Date(item.event_date).toLocaleString() : 'Без даты'}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function loadAllData() {
+      loadFinance();
+      loadHabits();
+      loadMedia();
+      loadEvents();
+    }
+
+    checkUser();
   </script>
 </body>
 </html>
