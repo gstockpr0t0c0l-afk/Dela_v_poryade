@@ -19,9 +19,23 @@
     .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
     .app-title { font-size: 1.3rem; font-weight: bold; color: #10b981; margin: 0; }
 
-    /* Кнопка-переход в историю */
-    .history-link-card { background: #1e1e1e; padding: 14px 16px; border-radius: 12px; border: 1px solid #333; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; }
-    .history-link-card:active { background: #2a2a2a; }
+    /* Полностью кликабельная плашка "История операций" */
+    .history-link-card { 
+      background: #1e1e1e; 
+      padding: 14px 16px; 
+      border-radius: 12px; 
+      border: 1px solid #333; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer; 
+      font-weight: 600; 
+      font-size: 0.95rem;
+      user-select: none;
+      transition: background 0.15s ease;
+    }
+    .history-link-card:active { background: #2a2a2a; border-color: #10b981; }
 
     /* Заголовок с кнопкой Назад */
     .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
@@ -84,10 +98,16 @@
         <button onclick="addFinance()">Добавить запись</button>
       </div>
 
-      <!-- Переход в историю -->
+      <!-- Кликабельная кнопка перехода в историю -->
       <div class="history-link-card" onclick="openHistoryScreen()">
-        <span>📜 История операций</span>
-        <span style="color:#10b981; font-size:0.9rem;">Открыть ›</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="5" width="20" height="14" rx="3"></rect>
+          <line x1="2" y1="10" x2="22" y2="10"></line>
+          <path d="M7 15h3"></path>
+          <path d="M14 14l2-2 2 2"></path>
+          <path d="M18 17l-2 2-2-2"></path>
+        </svg>
+        <span>История операций</span>
       </div>
     </div>
 
