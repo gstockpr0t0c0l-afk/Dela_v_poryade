@@ -42,25 +42,30 @@
     .chip-btn.sub-chip { background: #1e293b; color: #94a3b8; border-color: #334155; }
     .chip-btn.active-sub { background: #10b981; color: #000; border-color: #34d399; font-weight: bold; }
 
-    /* Переключатель типа операции (3 кнопки) */
+    /* Переключатель типа операции (3 кнопки с иконками) */
     .type-switcher { display: flex; gap: 6px; margin: 10px 0; }
     .type-btn {
       flex: 1;
-      padding: 10px 4px;
+      padding: 8px 4px;
       margin: 0;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       border-radius: 8px;
       background: #262626;
       color: #aaa;
       border: 1px solid #3d3d3d;
       font-weight: 600;
       cursor: pointer;
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
       transition: all 0.15s ease;
     }
-    .type-btn.active-income { background: #059669; color: #fff; border-color: #10b981; }
-    .type-btn.active-expense { background: #dc2626; color: #fff; border-color: #ef4444; }
-    .type-btn.active-transfer { background: #2563eb; color: #fff; border-color: #3b82f6; }
+    .type-btn svg { width: 26px; height: 26px; display: block; }
+    .type-btn.active-expense { background: #2c1517; color: #ff4d4d; border-color: #ff007f; }
+    .type-btn.active-income { background: #13281c; color: #34d399; border-color: #00c853; }
+    .type-btn.active-transfer { background: #14223b; color: #60a5fa; border-color: #0072ff; }
 
     /* Кликабельная плашка "История операций" */
     .history-link-card { 
@@ -84,7 +89,7 @@
     .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
     .back-btn { background: none; border: none; color: #10b981; font-size: 1rem; width: auto; margin: 0; padding: 4px 8px; cursor: pointer; font-weight: bold; }
 
-    /* Микро-разделитель по дням */
+    /* Разделитель по дням */
     .date-divider { font-size: 0.68rem; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #262626; margin: 10px 0 4px 0; padding-bottom: 2px; }
 
     /* Ультракомпактные строки транзакций */
@@ -96,7 +101,7 @@
     .balance-box { background: #172554; border: 1px solid #1d4ed8; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 12px; }
     .balance-val { font-size: 1.4rem; font-weight: bold; color: #60a5fa; }
 
-    /* Микро-подвал */
+    /* Подвал */
     .mini-footer { text-align: center; font-size: 0.75rem; color: #666; padding: 10px 0; margin-top: 15px; border-top: 1px dashed #333; display: flex; justify-content: center; align-items: center; gap: 10px; }
     .mini-footer button { width: auto; padding: 4px 8px; font-size: 0.75rem; background: #333; color: #ef4444; margin: 0; }
 
@@ -136,11 +141,60 @@
 
         <input type="number" id="fin-amount" placeholder="Сумма (руб.)">
         
-        <!-- Кнопки выбора типа операции -->
+        <!-- Кнопки выбора типа операции с новыми SVG иконками -->
         <div class="type-switcher">
-          <button type="button" id="btn-expense" class="type-btn active-expense" onclick="setOperationType('expense')">🔴 Расход</button>
-          <button type="button" id="btn-income" class="type-btn" onclick="setOperationType('income')">🟢 Пополнение</button>
-          <button type="button" id="btn-transfer" class="type-btn" onclick="setOperationType('transfer')">🔵 Перевод</button>
+          <button type="button" id="btn-expense" class="type-btn active-expense" onclick="setOperationType('expense')">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="expGrad2" x1="0%" y1="100%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#ff007f" />
+                  <stop offset="100%" stop-color="#ff5500" />
+                </linearGradient>
+              </defs>
+              <path d="M 8 18 C 8 14.7 10.7 12 14 12 H 26 L 22 32 L 28 52 H 14 C 10.7 52 8 49.3 8 46 V 18 Z" fill="url(#expGrad2)" />
+              <path d="M 32 12 H 50 C 53.3 12 56 14.7 56 18 V 46 C 56 49.3 53.3 52 50 52 H 34 L 28 32 L 32 12 Z" fill="url(#expGrad2)" />
+              <rect x="12" y="20" width="8" height="6" rx="1.5" fill="#121212" />
+              <path d="M 58 10 L 62 14 M 62 10 L 58 14" stroke="url(#expGrad2)" stroke-width="2" stroke-linecap="round" />
+              <circle cx="6" cy="10" r="2" fill="url(#expGrad2)" />
+            </svg>
+            <span>Расход</span>
+          </button>
+
+          <button type="button" id="btn-income" class="type-btn" onclick="setOperationType('income')">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="incGrad2" x1="0%" y1="100%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#00c853" />
+                  <stop offset="100%" stop-color="#b2ff59" />
+                </linearGradient>
+              </defs>
+              <circle cx="32" cy="14" r="8" fill="url(#incGrad2)" />
+              <path d="M 32 10 V 18 M 28 14 H 36" stroke="#121212" stroke-width="2" stroke-linecap="round" />
+              <path d="M 12 30 L 32 38 L 52 30 L 32 22 Z" fill="none" stroke="url(#incGrad2)" stroke-width="4" stroke-linejoin="round" />
+              <path d="M 12 30 V 48 L 32 58 V 38" fill="url(#incGrad2)" opacity="0.85" />
+              <path d="M 52 30 V 48 L 32 58 V 38" fill="url(#incGrad2)" />
+              <path d="M 12 12 L 16 16 M 16 12 L 12 16" stroke="url(#incGrad2)" stroke-width="1.5" stroke-linecap="round" />
+              <path d="M 48 12 L 52 16 M 52 12 L 48 16" stroke="url(#incGrad2)" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+            <span>Пополнение</span>
+          </button>
+
+          <button type="button" id="btn-transfer" class="type-btn" onclick="setOperationType('transfer')">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="trGrad2" x1="0%" y1="100%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#0072ff" />
+                  <stop offset="100%" stop-color="#00c6ff" />
+                </linearGradient>
+              </defs>
+              <rect x="6" y="14" width="52" height="36" rx="8" stroke="url(#trGrad2)" stroke-width="4" fill="none" />
+              <path d="M 22 28 C 22 24 26 22 32 22 H 40 M 40 22 L 34 17 M 40 22 L 34 27" stroke="url(#trGrad2)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M 42 38 C 42 42 38 44 32 44 H 24 M 24 44 L 30 39 M 24 44 L 30 49" stroke="url(#trGrad2)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="54" cy="10" r="2" fill="url(#trGrad2)" />
+              <circle cx="10" cy="56" r="2" fill="url(#trGrad2)" />
+            </svg>
+            <span>Перевод</span>
+          </button>
         </div>
         
         <!-- Поле категории и кнопки выбора -->
@@ -168,7 +222,7 @@
         <button onclick="addFinance()">Добавить запись</button>
       </div>
 
-      <!-- Кликабельная кнопка перехода в историю с SVG -->
+      <!-- Кликабельная кнопка перехода в историю -->
       <div class="history-link-card" onclick="openHistoryScreen()">
         <svg width="34" height="34" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -279,9 +333,8 @@
 
     let currentUser = null;
     let selectedMain = '';
-    let currentOperationType = 'expense'; // По умолчанию Расход
+    let currentOperationType = 'expense';
 
-    // Управление кнопками типов (Пополнение, Расход, Перевод)
     function setOperationType(type) {
       currentOperationType = type;
       const bExpense = document.getElementById('btn-expense');
@@ -293,7 +346,6 @@
       bTransfer.className = 'type-btn' + (type === 'transfer' ? ' active-transfer' : '');
     }
 
-    // Данные для 2 порядка (Приоритетные подкатегории)
     const subCategoriesMap = {
       'Продукты': ['Супермаркет', 'Гриль / Шашлык', 'Чай / Напитки', 'Перекус'],
       'Дом / Быт': ['Коммуналка', 'Стройка / Ремонт', 'Бытовая техника', 'Интерьер'],
@@ -307,19 +359,16 @@
       selectedMain = mainCat;
       document.getElementById('fin-category').value = mainCat;
       
-      // Авто-переключение типа операции при выборе
       if (mainCat === 'Доходы') {
         setOperationType('income');
       } else {
         setOperationType('expense');
       }
 
-      // Выделение активной кнопки 1 порядка
       document.querySelectorAll('#main-chips .chip-btn').forEach(btn => {
         btn.classList.toggle('active-main', btn.innerText.includes(mainCat));
       });
 
-      // Отображение 2 порядка
       const subContainer = document.getElementById('sub-chips');
       const subWrapper = document.getElementById('sub-chips-wrapper');
       
@@ -405,7 +454,6 @@
       document.getElementById('fin-amount').value = '';
       document.getElementById('fin-category').value = '';
       
-      // Сброс выделения кнопок
       document.querySelectorAll('.chip-btn').forEach(btn => {
         btn.classList.remove('active-main', 'active-sub');
       });
@@ -430,7 +478,6 @@
       data.forEach(item => {
         if (item.type === 'income') total += Number(item.amount);
         else if (item.type === 'expense') total -= Number(item.amount);
-        // Перевод ('transfer') не меняет общий баланс
       });
       balanceEl.innerText = `${total > 0 ? '+' : ''}${total} ₽`;
     }
