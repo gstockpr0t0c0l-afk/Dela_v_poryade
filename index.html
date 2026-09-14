@@ -127,11 +127,12 @@
       font-weight: 600; 
       font-size: 1rem;
       user-select: none;
+      margin-bottom: 12px;
       transition: background 0.15s ease, border-color 0.15s ease;
     }
     .history-link-card:active { background: #2a2a2a; border-color: #8b5cf6; }
 
-    /* Экран Истории */
+    /* Элементы списков истории */
     .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
     .back-btn { background: none; border: none; color: #10b981; font-size: 1rem; width: auto; margin: 0; padding: 4px 8px; cursor: pointer; font-weight: bold; }
     .date-divider { font-size: 0.68rem; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #262626; margin: 10px 0 4px 0; padding-bottom: 2px; }
@@ -221,7 +222,7 @@
 
             <input type="number" id="fin-amount" placeholder="Сумма (руб.)">
             
-            <!-- Кнопки выбора типа операции с SVG иконками -->
+            <!-- Переключатель типа операции -->
             <div class="type-switcher">
               <button type="button" id="btn-expense" class="type-btn active-expense" onclick="setOperationType('expense')">
                 <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -285,19 +286,26 @@
               <path d="M 275,148 H 68 A 36,36 0 0,0 32,184 V 416 A 36,36 0 0,0 68,452 H 444 A 36,36 0 0,0 480,416 V 270" fill="none" stroke="url(#neonGradient)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
               <line x1="32" y1="298" x2="480" y2="298" stroke="url(#neonGradient)" stroke-width="15"/>
             </svg>
-            <span>История операций</span>
+            <span>Открыть полную историю</span>
           </div>
+
+          <!-- ВОССТАНОВЛЕННЫЙ БЛОК: История операций прямо на главном экране -->
+          <div class="card">
+            <h2>📜 История операций</h2>
+            <div id="main-finance-list">Загрузка...</div>
+          </div>
+
         </div>
 
       </div>
 
     </div>
 
-    <!-- Экран: Последние операции -->
+    <!-- Экран: Отдельная подробная история -->
     <div id="screen-history" class="tab-content hidden" style="padding: 15px;">
       <div class="screen-header">
         <button class="back-btn" onclick="closeHistoryScreen()">← Назад</button>
-        <h2 style="margin:0;">Последние операции</h2>
+        <h2 style="margin:0;">Подробная история</h2>
       </div>
       <div id="grouped-finance-list">Загрузка...</div>
     </div>
@@ -354,7 +362,7 @@
     let selectedMain = '';
     let currentOperationType = 'expense';
 
-    // Логика Свайпа на главном экране финансов
+    // Свайп жесты
     let startX = 0;
     const swipeWrapper = document.getElementById('financeSwipeWrapper');
     swipeWrapper.addEventListener('touchstart', e => startX = e.touches[0].clientX);
@@ -455,7 +463,7 @@
         document.getElementById('auth-section').classList.add('hidden');
         document.getElementById('app-section').classList.remove('hidden');
         document.getElementById('user-email').innerText = user.email;
-        loadFinanceBalance();
+        loadFinanceData();
       } else {
         document.getElementById('auth-section').classList.remove('hidden');
         document.getElementById('app-section').classList.add('hidden');
@@ -498,27 +506,54 @@
       });
       document.getElementById('sub-chips-wrapper').classList.add('hidden');
 
-      loadFinanceBalance();
+      loadFinanceData();
     }
 
     async function deleteFinance(id) {
       if (!confirm('Удалить эту запись?')) return;
       await dbClient.from('finance').delete().eq('id', id);
-      loadFinanceBalance();
+      loadFinanceData();
       loadFullHistory();
     }
 
-    async function loadFinanceBalance() {
-      const { data } = await dbClient.from('finance').select('*');
+    // Загрузка баланса и списка на главном экране
+    async function loadFinanceData() {
+      const { data } = await dbClient.from('finance').select('*').order('created_at', { ascending: false });
       const balanceEl = document.getElementById('total-balance');
-      if (!data || data.length === 0) { balanceEl.innerText = '0 ₽'; return; }
+      const mainListEl = document.getElementById('main-finance-list');
+      
+      if (!data || data.length === 0) {
+        balanceEl.innerText = '0 ₽';
+        mainListEl.innerHTML = '<p style="color:#666; text-align:center;">Записей пока нет</p>';
+        return;
+      }
 
       let total = 0;
-      data.forEach(item => {
+      let listHtml = '';
+
+      data.forEach((item, index) => {
         if (item.type === 'income') total += Number(item.amount);
         else if (item.type === 'expense') total -= Number(item.amount);
+
+        // Отображаем последние записи на главном экране
+        let color = '#ef4444';
+        let sign = '-';
+        if (item.type === 'income') { color = '#10b981'; sign = '+'; }
+        else if (item.type === 'transfer') { color = '#3b82f6'; sign = '↔ '; }
+
+        listHtml += `
+          <div class="list-item-compact ${item.type}">
+            <div><b>${item.category}</b></div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-weight:bold; color:${color}">${sign}${item.amount} ₽</span>
+              <button class="delete-btn" onclick="deleteFinance('${item.id}')">🗑️</button>
+            </div>
+          </div>
+        `;
       });
+
       balanceEl.innerText = `${total > 0 ? '+' : ''}${total} ₽`;
+      mainListEl.innerHTML = listHtml;
     }
 
     async function loadFullHistory() {
@@ -549,13 +584,9 @@
 
           html += `
             <div class="list-item-compact ${item.type}">
-              <div>
-                <b>${item.category}</b>
-              </div>
+              <div><b>${item.category}</b></div>
               <div style="display:flex; align-items:center; gap:6px;">
-                <span style="font-weight:bold; color:${color}">
-                  ${sign}${item.amount} ₽
-                </span>
+                <span style="font-weight:bold; color:${color}">${sign}${item.amount} ₽</span>
                 <button class="delete-btn" onclick="deleteFinance('${item.id}')">🗑️</button>
               </div>
             </div>
