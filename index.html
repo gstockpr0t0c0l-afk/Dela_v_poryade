@@ -1,388 +1,279 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Life Control - Финансы</title>
-    <style>
-        :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --accent-green: #2ecc71;
-            --accent-red: #e74c3c;
-            --text-main: #ffffff;
-            --text-secondary: #aaaaaa;
-            --date-color: #f1c40f; /* Цвет даты */
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Life Control — История операций</title>
+  <style>
+    :root {
+      --bg-color: #0d0d0d;
+      --card-bg: #1c1c1e;
+      --card-hover: #26262a;
+      --text-main: #ffffff;
+      --text-sub: #8e8e93;
+      --accent-green: #00e676;
+      --accent-red: #ff5252;
+      --accent-yellow: #ffb300;
+      --accent-blue: #29b6f6;
+      --border-radius: 10px;
+    }
 
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
 
-        header {
-            padding: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #2c2c2c;
-        }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      padding: 12px;
+    }
 
-        header h1 {
-            font-size: 20px;
-            color: var(--accent-green);
-            margin: 0;
-        }
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
 
-        .container {
-            flex: 1;
-            padding: 16px;
-            max-width: 600px;
-            margin: 0 auto;
-            width: 100%;
-            box-sizing: border-box;
-            padding-bottom: 80px;
-        }
+    /* Шапка */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+    }
 
-        .day-group {
-            margin-bottom: 24px;
-        }
+    .app-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--accent-green);
+    }
 
-        .day-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 13px;
-            font-weight: bold;
-            color: var(--date-color);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+    .view-mode {
+      font-size: 13px;
+      color: var(--text-sub);
+    }
 
-        /* Цвет итога дня автоматически совпадает с цветом даты благодаря inherit */
-        .day-total {
-            color: inherit;
-        }
+    /* Блок дня */
+    .day-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
 
-        .transaction-card {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 12px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            border-left: 4px solid transparent;
-        }
+    .day-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
 
-        /* Метки приоритетов для визуального разделения */
-        .transaction-card.priority-1 {
-            border-left-color: var(--accent-red);
-        }
+    .day-date {
+      color: var(--accent-yellow);
+    }
 
-        .transaction-card.priority-2 {
-            border-left-color: #3498db;
-        }
+    .day-total {
+      font-weight: 800;
+    }
 
-        .transaction-card.income {
-            border-left-color: var(--accent-green);
-        }
+    .day-total.positive { color: var(--accent-yellow); }
+    .day-total.negative { color: var(--accent-red); }
 
-        .tx-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
+    /* Компактная карточка операции */
+    .item-card {
+      position: relative;
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 8px 12px 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      overflow: hidden;
+      transition: background-color 0.15s;
+    }
 
-        .tx-title {
-            font-size: 15px;
-            font-weight: 500;
-        }
+    .item-card:hover {
+      background-color: var(--card-hover);
+    }
 
-        .tx-category {
-            font-size: 11px;
-            color: var(--text-secondary);
-        }
+    /* Цветовой индикатор слева */
+    .item-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      border-top-left-radius: var(--border-radius);
+      border-bottom-left-radius: var(--border-radius);
+    }
 
-        .tx-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+    .item-card.income::before { background-color: var(--accent-green); }
+    .item-card.expense-red::before { background-color: var(--accent-red); }
+    .item-card.expense-blue::before { background-color: var(--accent-blue); }
 
-        .tx-amount {
-            font-size: 15px;
-            font-weight: bold;
-        }
+    /* Информация об операции */
+    .item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
 
-        .tx-amount.expense {
-            color: #ff6b6b;
-        }
+    .item-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
 
-        .tx-amount.income {
-            color: var(--accent-green);
-        }
+    .item-category {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
 
-        .action-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-            padding: 4px;
-        }
+    /* Сумма и действия */
+    .item-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-        .action-btn:hover {
-            opacity: 1;
-        }
+    .item-amount {
+      font-size: 14px;
+      font-weight: 800;
+    }
 
-        /* Нижняя навигация */
-        nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: #181818;
-            border-top: 1px solid #2c2c2c;
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-        }
+    .item-amount.positive { color: var(--accent-green); }
+    .item-amount.negative { color: var(--accent-red); }
 
-        .nav-item {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-        }
+    /* Кнопки действий */
+    .btn-icon {
+      background: none;
+      border: none;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px;
+    }
 
-        .nav-item.active {
-            color: var(--accent-green);
-        }
+    .btn-icon:hover {
+      opacity: 1;
+    }
 
-        /* Модальное окно */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.7);
-            justify-content: center;
-            align-items: center;
-            padding: 16px;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 400px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .modal-content input, .modal-content select {
-            background: #2a2a2a;
-            border: 1px solid #3c3c3c;
-            color: white;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 8px;
-            justify-content: flex-end;
-            margin-top: 8px;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .btn-save { background: var(--accent-green); color: black; }
-        .btn-cancel { background: #3a3a3a; color: white; }
-    </style>
+    .btn-icon svg {
+      width: 15px;
+      height: 15px;
+      stroke: var(--text-sub);
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  </style>
 </head>
 <body>
 
-    <header>
-        <h1>Life Control</h1>
-        <span style="font-size: 14px; color: var(--text-secondary);">Вид: Сбоку</span>
+  <div class="app-container">
+    <header class="header">
+      <h1 class="app-title">Life Control</h1>
+      <span class="view-mode">Вид: Сбоку</span>
     </header>
 
-    <div class="container" id="app-container">
-        <!-- Сюда динамически рендерится список транзакций -->
-    </div>
+    <main id="history-container"></main>
+  </div>
 
-    <!-- Модальное окно редактирования -->
-    <div class="modal" id="editModal">
-        <div class="modal-content">
-            <h3>Редактировать транзакцию</h3>
-            <input type="hidden" id="editId">
-            <label>Название:</label>
-            <input type="text" id="editTitle">
-            <label>Сумма (с минусом для расходов):</label>
-            <input type="number" id="editAmount">
-            <label>Категория и приоритет:</label>
-            <select id="editCategory">
-                <option value="1">1-й порядок (Квартира, КУ, Кредиты, Питание, Налоги)</option>
-                <option value="2">2-й порядок (Хотелки, Покушалки, Развлечения)</option>
-                <option value="0">Доход (ЗП и др.)</option>
-            </select>
-            <div class="modal-buttons">
-                <button class="btn btn-cancel" onclick="closeModal()">Отмена</button>
-                <button class="btn btn-save" onclick="saveTransaction()">Сохранить</button>
+  <script>
+    // Массив данных операций
+    const historyData = [
+      {
+        date: "14 СЕНТЯБРЯ 2026 Г.",
+        dayTotal: "+48 088 ₽",
+        isTotalPositive: true,
+        items: [
+          { id: 1, title: "Зп", category: "Доход", amount: "+90 000 ₽", type: "income" },
+          { id: 2, title: "Налог (сентябрь/окт)", category: "1-й порядок", amount: "-7 000 ₽", type: "expense-red" },
+          { id: 3, title: "Кредитка Тинькофф", category: "1-й порядок", amount: "-15 000 ₽", type: "expense-red" },
+          { id: 4, title: "КУ", category: "1-й порядок", amount: "-2 000 ₽", type: "expense-red" },
+          { id: 5, title: "Альфа", category: "1-й порядок", amount: "-1 512 ₽", type: "expense-red" },
+          { id: 6, title: "Сплит Я", category: "2-й порядок", amount: "-16 400 ₽", type: "expense-blue" }
+        ]
+      },
+      {
+        date: "13 СЕНТЯБРЯ 2026 Г.",
+        dayTotal: "-583 ₽",
+        isTotalPositive: false,
+        items: [
+          { id: 7, title: "Зп", category: "Доход", amount: "+500 ₽", type: "income" },
+          { id: 8, title: "Такси", category: "1-й порядок", amount: "-500 ₽", type: "expense-red" },
+          { id: 9, title: "Шаурма", category: "2-й порядок", amount: "-583 ₽", type: "expense-blue" }
+        ]
+      }
+    ];
+
+    // Отрисовка списка
+    function renderHistory() {
+      const container = document.getElementById("history-container");
+      container.innerHTML = "";
+
+      historyData.forEach(group => {
+        const groupEl = document.createElement("div");
+        groupEl.className = "day-group";
+
+        const totalClass = group.isTotalPositive ? "positive" : "negative";
+
+        let itemsHTML = group.items.map(item => {
+          const amountClass = item.amount.startsWith("+") ? "positive" : "negative";
+          return `
+            <div class="item-card ${item.type}">
+              <div class="item-info">
+                <span class="item-title">${item.title}</span>
+                <span class="item-category">${item.category}</span>
+              </div>
+              <div class="item-actions">
+                <span class="item-amount ${amountClass}">${item.amount}</span>
+                <button class="btn-icon" onclick="editItem(${item.id})" title="Редактировать">
+                  <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                </button>
+                <button class="btn-icon" onclick="deleteItem(${item.id})" title="Удалить">
+                  <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
             </div>
-        </div>
-    </div>
+          `;
+        }).join("");
 
-    <nav>
-        <a href="#" class="nav-item active">💰 Финансы</a>
-        <a href="#" class="nav-item">🎯 Привычки</a>
-        <a href="#" class="nav-item">🎬 Медиа</a>
-        <a href="#" class="nav-item">📅 События</a>
-    </nav>
+        groupEl.innerHTML = `
+          <div class="day-header">
+            <span class="day-date">${group.date}</span>
+            <span class="day-total ${totalClass}">${group.dayTotal}</span>
+          </div>
+          ${itemsHTML}
+        `;
 
-    <script>
-        // Демо-данные с учетом приоритетов (priority: 0 - доходы, 1 - 1-й порядок, 2 - 2-й порядок)
-        let transactionsData = [
-            {
-                date: "14 СЕНТЯБРЯ 2026 Г.",
-                items: [
-                    { id: 1, title: "Зп", amount: 90000, type: "income", priority: 0, categoryName: "Доход" },
-                    { id: 2, title: "Налог (сентябрь/окт)", amount: -7000, type: "expense", priority: 1, categoryName: "1-й порядок" },
-                    { id: 3, title: "Кредитка Тинькофф", amount: -15000, type: "expense", priority: 1, categoryName: "1-й порядок" },
-                    { id: 4, title: "КУ", amount: -2000, type: "expense", priority: 1, categoryName: "1-й порядок" },
-                    { id: 5, title: "Сплит Я", amount: -16400, type: "expense", priority: 2, categoryName: "2-й порядок" },
-                    { id: 6, title: "Альфа", amount: -1512, type: "expense", priority: 1, categoryName: "1-й порядок" }
-                ]
-            },
-            {
-                date: "13 СЕНТЯБРЯ 2026 Г.",
-                items: [
-                    { id: 7, title: "Зп", amount: 500, type: "income", priority: 0, categoryName: "Доход" },
-                    { id: 8, title: "Такси", amount: -500, type: "expense", priority: 1, categoryName: "1-й порядок" },
-                    { id: 9, title: "Шаурма", amount: -583, type: "expense", priority: 2, categoryName: "2-й порядок" }
-                ]
-            }
-        ];
+        container.appendChild(groupEl);
+      });
+    }
 
-        function renderApp() {
-            const container = document.getElementById('app-container');
-            container.innerHTML = '';
+    function editItem(id) {
+      console.log("Редактирование операции №:", id);
+    }
 
-            transactionsDataforEachDay = transactionsData.map(dayGroup => {
-                // Сортировка внутри дня: сначала доходы и 1-й порядок (priority 0, 1), затем 2-й порядок (priority 2)
-                const sortedItems = [...dayGroup.items].sort((a, b) => a.priority - b.priority);
-                
-                // Подсчет итогов дня
-                const dayTotal = sortedItems.reduce((acc, item) => acc + item.amount, 0);
-                const totalFormatted = (dayTotal > 0 ? '+' : '') + dayTotal.toLocaleString() + ' ₽';
+    function deleteItem(id) {
+      console.log("Удаление операции №:", id);
+    }
 
-                let itemsHtml = sortedItems.map(item => `
-                    <div class="transaction-card priority-${item.priority} ${item.type === 'income' ? 'income' : ''}">
-                        <div class="tx-info">
-                            <span class="tx-title">${item.title}</span>
-                            <span class="tx-category">${item.categoryName}</span>
-                        </div>
-                        <div class="tx-right">
-                            <span class="tx-amount ${item.type}">
-                                ${item.amount > 0 ? '+' : ''}${item.amount.toLocaleString()} ₽
-                            </span>
-                            <button class="action-btn" onclick="openEditModal(${item.id})" title="Редактировать">✏️</button>
-                            <button class="action-btn" onclick="deleteTransaction(${item.id})" title="Удалить">🗑️</button>
-                        </div>
-                    </div>
-                `).join('');
-
-                return `
-                    <div class="day-group">
-                        <div class="day-header">
-                            <span>${dayGroup.date}</span>
-                            <span class="day-total">${totalFormatted}</span>
-                        </div>
-                        ${itemsHtml}
-                    </div>
-                `;
-            }).join('');
-
-            container.innerHTML = transactionsDataforEachDay;
-        }
-
-        // Функции редактирования
-        function openEditModal(id) {
-            let foundItem = null;
-            transactionsData.forEach(day => {
-                const item = day.items.find(i => i.id === id);
-                if (item) foundItem = item;
-            });
-
-            if (foundItem) {
-                document.getElementById('editId').value = foundItem.id;
-                document.getElementById('editTitle').value = foundItem.title;
-                document.getElementById('editAmount').value = foundItem.amount;
-                document.getElementById('editCategory').value = foundItem.priority;
-                document.getElementById('editModal').style.display = 'flex';
-            }
-        }
-
-        function closeModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
-
-        function saveTransaction() {
-            const id = parseInt(document.getElementById('editId').value);
-            const title = document.getElementById('editTitle').value;
-            const amount = parseFloat(document.getElementById('editAmount').value);
-            const priority = parseInt(document.getElementById('editCategory').value);
-            const type = priority === 0 ? 'income' : 'expense';
-            const categoryName = priority === 0 ? 'Доход' : (priority === 1 ? '1-й порядок' : '2-й порядок');
-
-            transactionsData.forEach(day => {
-                const item = day.items.find(i => i.id === id);
-                if (item) {
-                    item.title = title;
-                    item.amount = amount;
-                    item.priority = priority;
-                    item.type = type;
-                    item.categoryName = categoryName;
-                }
-            });
-
-            closeModal();
-            renderApp();
-        }
-
-        function deleteTransaction(id) {
-            if (confirm("Удалить эту транзакцию?")) {
-                transactionsData.forEach(day => {
-                    day.items = day.items.filter(i => i.id !== id);
-                });
-                renderApp();
-            }
-        }
-
-        // Первичный запуск отрисовки
-        renderApp();
-    </script>
+    renderHistory();
+  </script>
 </body>
 </html>
