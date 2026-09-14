@@ -17,8 +17,8 @@
     .hidden { display: none !important; }
 
     /* Контейнер свайпа для экранов */
-    .swipe-wrapper { display: flex; width: 200vw; height: calc(100vh - 80px); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
-    .page-screen { width: 100vw; height: 100%; padding: 15px; overflow-y: auto; }
+    .swipe-wrapper { display: flex; width: 200vw; height: calc(100vh - 120px); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
+    .page-screen { width: 100vw; height: 100%; padding: 15px; padding-bottom: 100px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
     
     .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
     .app-title { font-size: 1.3rem; font-weight: bold; color: #10b981; margin: 0; }
@@ -65,9 +65,24 @@
 
     .swipe-hint { text-align: center; font-size: 0.75rem; color: #666; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    /* --- ЭКРАН 2: ПРИВЫЧНАЯ ФОРМА ФИНАНСОВ --- */
-    .chips-section { margin: 8px 0; display: flex; flex-direction: column; gap: 8px; }
-    .chips-label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+    /* --- СВОРАЧИВАЕМЫЕ КАТЕГОРИИ --- */
+    details.chips-accordion {
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 8px;
+      margin: 8px 0;
+      padding: 8px 10px;
+    }
+    details.chips-accordion summary {
+      font-size: 0.8rem;
+      color: #aaa;
+      cursor: pointer;
+      font-weight: 600;
+      outline: none;
+      user-select: none;
+    }
+    .chips-section { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
+    .chips-label { font-size: 0.72rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
     .chips-container { display: flex; flex-wrap: wrap; gap: 6px; }
     
     .chip-btn {
@@ -136,6 +151,7 @@
       background: #121212;
       z-index: 100;
       padding: 16px;
+      padding-bottom: 80px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -158,7 +174,6 @@
       font-size: 0.85rem;
     }
 
-    /* Разделитель даты с фиксированной суммой за день */
     .date-divider { 
       font-size: 0.68rem; 
       font-weight: 600; 
@@ -182,7 +197,7 @@
     .balance-val { font-size: 1.4rem; font-weight: bold; color: #60a5fa; }
 
     /* Подвал */
-    .mini-footer { text-align: center; font-size: 0.75rem; color: #666; padding: 8px 0; position: fixed; bottom: 45px; left: 0; right: 0; background: #121212; display: flex; justify-content: center; align-items: center; gap: 10px; z-index: 40; }
+    .mini-footer { text-align: center; font-size: 0.75rem; color: #666; padding: 6px 0; position: fixed; bottom: 45px; left: 0; right: 0; background: #121212; display: flex; justify-content: center; align-items: center; gap: 10px; z-index: 40; }
     .mini-footer button { width: auto; padding: 4px 8px; font-size: 0.75rem; background: #333; color: #ef4444; margin: 0; }
 
     /* Нижнее меню */
@@ -249,7 +264,7 @@
         <div class="page-screen" id="page-form">
           <div class="swipe-hint" style="margin-top:0; margin-bottom:10px;">⬅ Смахивай вправо для голосовой кнопки</div>
 
-          <div class="card" style="margin-bottom: 60px;">
+          <div class="card">
             <h2>💰 Финансы</h2>
             <div class="balance-box">
               <div style="font-size:0.8rem; color:#93c5fd;">Итоговый баланс</div>
@@ -293,28 +308,32 @@
               </button>
             </div>
             
-            <input type="text" id="fin-category" placeholder="Категория (выберите ниже или введите)">
+            <input type="text" id="fin-category" placeholder="Категория (выберите или введите)">
             
-            <div class="chips-section">
-              <div class="chips-label">Категория (1 порядок)</div>
-              <div class="chips-container" id="main-chips">
-                <button class="chip-btn" onclick="selectMainCategory('Продукты')">🛒 Продукты</button>
-                <button class="chip-btn" onclick="selectMainCategory('Дом / Быт')">🏠 Дом</button>
-                <button class="chip-btn" onclick="selectMainCategory('Авто')">🚗 Авто</button>
-                <button class="chip-btn" onclick="selectMainCategory('Здоровье')">💊 Здоровье</button>
-                <button class="chip-btn" onclick="selectMainCategory('Доходы')">💵 Доходы</button>
-                <button class="chip-btn" onclick="selectMainCategory('Развлечения')">🎬 Развлечения</button>
-              </div>
+            <!-- Сворачиваемая панель категорий -->
+            <details class="chips-accordion">
+              <summary>🏷️ Выбрать быструю категорию</summary>
+              <div class="chips-section">
+                <div class="chips-label">Основная категория</div>
+                <div class="chips-container" id="main-chips">
+                  <button class="chip-btn" onclick="selectMainCategory('Продукты')">🛒 Продукты</button>
+                  <button class="chip-btn" onclick="selectMainCategory('Дом / Быт')">🏠 Дом</button>
+                  <button class="chip-btn" onclick="selectMainCategory('Авто')">🚗 Авто</button>
+                  <button class="chip-btn" onclick="selectMainCategory('Здоровье')">💊 Здоровье</button>
+                  <button class="chip-btn" onclick="selectMainCategory('Доходы')">💵 Доходы</button>
+                  <button class="chip-btn" onclick="selectMainCategory('Развлечения')">🎬 Развлечения</button>
+                </div>
 
-              <div id="sub-chips-wrapper" class="hidden">
-                <div class="chips-label" style="margin-top: 4px;">Приоритет / Подкатегория (2 порядок)</div>
-                <div class="chips-container" id="sub-chips"></div>
+                <div id="sub-chips-wrapper" class="hidden">
+                  <div class="chips-label" style="margin-top: 4px;">Подкатегория</div>
+                  <div class="chips-container" id="sub-chips"></div>
+                </div>
               </div>
-            </div>
+            </details>
 
             <button onclick="addFinance()">Добавить запись</button>
             
-            <!-- Кнопка открытия отдельного экрана истории -->
+            <!-- Кнопка вызова истории -->
             <button type="button" class="history-trigger-btn" onclick="openHistoryModal()">📋 История операций</button>
           </div>
 
@@ -324,7 +343,7 @@
 
     </div>
 
-    <!-- ОТДЕЛЬНЫЙ ЭКРАН (МОДАЛКА) ИСТОРИИ ОПЕРАЦИЙ -->
+    <!-- МОДАЛЬНЫЙ ЭКРАН ИСТОРИИ -->
     <div id="modal-history-screen" class="modal-history hidden">
       <div class="modal-header">
         <h3>📋 История операций</h3>
@@ -547,7 +566,6 @@
         return;
       }
 
-      // Расчет общего баланса
       let total = 0;
       data.forEach(item => {
         if (item.type === 'income') total += Number(item.amount);
@@ -555,7 +573,6 @@
       });
       balanceEl.innerText = `${total > 0 ? '+' : ''}${total} ₽`;
 
-      // Группировка историй по дням
       const groups = {};
       data.forEach(item => {
         const d = new Date(item.created_at);
