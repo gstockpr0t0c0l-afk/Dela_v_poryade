@@ -37,9 +37,11 @@
     }
     .history-link-card:active { background: #2a2a2a; border-color: #8b5cf6; }
 
-    /* Заголовок с кнопкой Назад */
+    /* Заголовок с кнопкой Назад и переключателем вида */
     .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
     .back-btn { background: none; border: none; color: #10b981; font-size: 1rem; width: auto; margin: 0; padding: 4px 8px; cursor: pointer; font-weight: bold; }
+    .view-toggle { background: #2a2a2a; border: 1px solid #444; color: #aaa; padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; margin-left: auto; width: auto; font-weight: bold; }
+    .view-toggle:active { background: #333; }
 
     /* Микро-разделитель по дням */
     .date-divider { font-size: 0.68rem; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #262626; margin: 10px 0 4px 0; padding-bottom: 2px; }
@@ -102,70 +104,43 @@
       <div class="history-link-card" onclick="openHistoryScreen()">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="44" height="44">
           <defs>
-            <!-- Градиент неоновой подсветки (синий -> фиолетовый -> розовый) -->
             <linearGradient id="neonGradient" x1="0%" y1="100%" x2="100%" y2="0%">
               <stop offset="0%" stop-color="#3B52F6" />
               <stop offset="45%" stop-color="#8A3CF4" />
               <stop offset="100%" stop-color="#E048C8" />
             </linearGradient>
           </defs>
-
-          <!-- 1. Контур банковской карты -->
           <path d="M 275,148 H 68 A 36,36 0 0,0 32,184 V 416 A 36,36 0 0,0 68,452 H 444 A 36,36 0 0,0 480,416 V 270" 
                 fill="none" stroke="url(#neonGradient)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" />
-
-          <!-- 2. Горизонтальная линия разделения карты -->
           <line x1="32" y1="298" x2="480" y2="298" stroke="url(#neonGradient)" stroke-width="15" />
-
-          <!-- 3. ДЕТАЛИЗИРОВАННАЯ ИМИТАЦИЯ EMV-ЧИПА (ЛИНИИ ТОНЬШЕ) -->
           <g fill="none" stroke="url(#neonGradient)">
-            <!-- Внешний корпус чипа -->
             <rect x="58" y="180" width="96" height="88" rx="18" stroke-width="5" />
-
-            <!-- Центральный контакт -->
             <rect x="91" y="209" width="30" height="30" rx="4" stroke-width="4" />
-
-            <!-- Горизонтальные и вертикальные линии контактов -->
             <line x1="58" y1="224" x2="91" y2="224" stroke-width="4" />
             <line x1="121" y1="224" x2="154" y2="224" stroke-width="4" />
             <line x1="106" y1="180" x2="106" y2="209" stroke-width="4" />
             <line x1="106" y1="239" x2="106" y2="268" stroke-width="4" />
-
-            <!-- Фигурные дуги смарт-чипа -->
             <path d="M 76,180 V 204 A 12,12 0 0,0 88,216 H 91" stroke-width="4" stroke-linecap="round" />
             <path d="M 136,180 V 204 A 12,12 0 0,1 124,216 H 121" stroke-width="4" stroke-linecap="round" />
             <path d="M 76,268 V 244 A 12,12 0 0,1 88,232 H 91" stroke-width="4" stroke-linecap="round" />
             <path d="M 136,268 V 244 A 12,12 0 0,0 124,232 H 121" stroke-width="4" stroke-linecap="round" />
           </g>
-
-          <!-- 4. 16 ЦИФР НОМЕРА КАРТЫ (КРУПНЕЕ И ЖИРНЕЕ) -->
           <g fill="url(#neonGradient)" font-family="monospace, 'Courier New', sans-serif" font-weight="900" font-size="30" letter-spacing="2">
             <text x="54" y="348">4532</text>
             <text x="154" y="348">7812</text>
             <text x="254" y="348">3456</text>
             <text x="354" y="348">9012</text>
           </g>
-
-          <!-- 5. СРОК ДЕЙСТВИЯ КАРТЫ (КРУПНЕЕ И ЖИРНЕЕ) -->
           <g fill="url(#neonGradient)" font-family="sans-serif">
             <text x="210" y="380" font-size="11" font-weight="800" letter-spacing="1">VALID THRU</text>
             <text x="210" y="405" font-family="monospace, sans-serif" font-size="20" font-weight="900">12/28</text>
           </g>
-
-          <!-- 6. ИМЯ ВЛАДЕЛЬЦА КАРТЫ (КРУПНЕЕ И ЖИРНЕЕ) -->
           <g fill="url(#neonGradient)" font-family="sans-serif">
             <text x="54" y="435" font-size="24" font-weight="900" letter-spacing="2">CARDHOLDER NAME</text>
           </g>
-
-          <!-- 7. ПЛАШКА ИСТОРИИ ОПЕРАЦИЙ -->
           <rect x="285" y="60" width="195" height="195" rx="42" fill="none" stroke="url(#neonGradient)" stroke-width="15" stroke-linejoin="round" />
-
-          <!-- 8. СПЛОШНЫЕ СТРЕЛКИ ОБМЕНА -->
           <g fill="url(#neonGradient)">
-            <!-- Верхняя стрелка (вправо) -->
             <path d="M 330,146 C 330,128 348,116 368,116 H 410 V 98 L 466,131 L 410,164 V 146 Z" />
-            
-            <!-- Нижняя стрелка (влево) -->
             <path d="M 435,179 C 435,197 417,209 397,209 H 355 V 227 L 299,194 L 355,161 V 179 Z" />
           </g>
         </svg>
@@ -177,7 +152,9 @@
     <div id="screen-history" class="tab-content hidden">
       <div class="screen-header">
         <button class="back-btn" onclick="closeHistoryScreen()">← Назад</button>
-        <h2 style="margin:0;">Последние операции</h2>
+        <h2 style="margin:0;">Операции</h2>
+        <!-- Кнопка переключения вида -->
+        <button class="view-toggle" onclick="toggleHistoryView()" id="toggle-view-btn">Вид: Сбоку</button>
       </div>
       <div id="grouped-finance-list">Загрузка...</div>
     </div>
@@ -243,6 +220,14 @@
     const dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUser = null;
+    let historyViewMode = 'inline'; // 'inline' (сбоку) или 'stacked' (снизу)
+
+    function toggleHistoryView() {
+      historyViewMode = historyViewMode === 'inline' ? 'stacked' : 'inline';
+      const btn = document.getElementById('toggle-view-btn');
+      btn.innerText = historyViewMode === 'inline' ? 'Вид: Сбоку' : 'Вид: Снизу';
+      loadFullHistory();
+    }
 
     function switchTab(tabName, evt) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -351,7 +336,37 @@
 
       let html = '';
       for (const [date, items] of Object.entries(groups)) {
-        html += `<div class="date-divider">${date}</div>`;
+        // Подсчет итога за день
+        let dailyTotal = 0;
+        items.forEach(item => {
+          if (item.type === 'income') dailyTotal += Number(item.amount);
+          else dailyTotal -= Number(item.amount);
+        });
+        
+        const totalColor = dailyTotal > 0 ? '#10b981' : (dailyTotal < 0 ? '#ef4444' : '#666');
+        const sign = dailyTotal > 0 ? '+' : '';
+
+        // Отрисовка в зависимости от выбранного режима
+        if (historyViewMode === 'inline') {
+          html += `
+            <div class="date-divider" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>${date}</span>
+              <span style="color: ${totalColor}; font-weight: 700; font-size: 0.75rem; text-transform: none;">
+                ${sign}${dailyTotal} ₽
+              </span>
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="date-divider" style="display: flex; flex-direction: column; gap: 4px; padding-bottom: 6px;">
+              <span>${date}</span>
+              <span style="color: ${totalColor}; font-weight: 700; font-size: 0.75rem; text-transform: none;">
+                Итог: ${sign}${dailyTotal} ₽
+              </span>
+            </div>
+          `;
+        }
+
         items.forEach(item => {
           html += `
             <div class="list-item-compact ${item.type}">
