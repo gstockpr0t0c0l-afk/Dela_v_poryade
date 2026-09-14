@@ -88,7 +88,7 @@
     .chip-btn.sub-chip { background: #1e293b; color: #94a3b8; border-color: #334155; }
     .chip-btn.active-sub { background: #10b981; color: #000; border-color: #34d399; font-weight: bold; }
 
-    /* Переключатель типа операции (3 кнопки с иконками) */
+    /* Переключатель типа операции */
     .type-switcher { display: flex; gap: 6px; margin: 10px 0; }
     .type-btn {
       flex: 1;
@@ -132,10 +132,24 @@
     }
     .history-link-card:active { background: #2a2a2a; border-color: #8b5cf6; }
 
-    /* Элементы списков истории */
+    /* Разделитель даты с фиксированной суммой за день */
     .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
     .back-btn { background: none; border: none; color: #10b981; font-size: 1rem; width: auto; margin: 0; padding: 4px 8px; cursor: pointer; font-weight: bold; }
-    .date-divider { font-size: 0.68rem; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #262626; margin: 10px 0 4px 0; padding-bottom: 2px; }
+    
+    .date-divider { 
+      font-size: 0.68rem; 
+      font-weight: 600; 
+      color: #666; 
+      text-transform: uppercase; 
+      letter-spacing: 0.5px; 
+      border-bottom: 1px solid #262626; 
+      margin: 12px 0 4px 0; 
+      padding-bottom: 2px; 
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
     .list-item-compact { background: #1c1c1c; padding: 8px 10px; border-radius: 6px; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid #10b981; font-size: 0.85rem; }
     .list-item-compact.expense { border-left-color: #ef4444; }
     .list-item-compact.transfer { border-left-color: #3b82f6; }
@@ -279,20 +293,14 @@
             <button onclick="addFinance()">Добавить запись</button>
           </div>
 
-          <!-- Кликабельная плашка истории -->
+          <!-- Кликабельная плашка "История операций" (История разворачивается ТОЛЬКО при нажатии) -->
           <div class="history-link-card" onclick="openHistoryScreen()">
             <svg width="34" height="34" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
               <defs><linearGradient id="neonGradient" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#3B52F6"/><stop offset="45%" stop-color="#8A3CF4"/><stop offset="100%" stop-color="#E048C8"/></linearGradient></defs>
               <path d="M 275,148 H 68 A 36,36 0 0,0 32,184 V 416 A 36,36 0 0,0 68,452 H 444 A 36,36 0 0,0 480,416 V 270" fill="none" stroke="url(#neonGradient)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
               <line x1="32" y1="298" x2="480" y2="298" stroke="url(#neonGradient)" stroke-width="15"/>
             </svg>
-            <span>Открыть полную историю</span>
-          </div>
-
-          <!-- ВОССТАНОВЛЕННЫЙ БЛОК: История операций прямо на главном экране -->
-          <div class="card">
-            <h2>📜 История операций</h2>
-            <div id="main-finance-list">Загрузка...</div>
+            <span>Открыть историю операций</span>
           </div>
 
         </div>
@@ -301,11 +309,11 @@
 
     </div>
 
-    <!-- Экран: Отдельная подробная история -->
+    <!-- ЭКРАН: Подробная история (Отдельный экран) -->
     <div id="screen-history" class="tab-content hidden" style="padding: 15px;">
       <div class="screen-header">
         <button class="back-btn" onclick="closeHistoryScreen()">← Назад</button>
-        <h2 style="margin:0;">Подробная история</h2>
+        <h2 style="margin:0;">История операций</h2>
       </div>
       <div id="grouped-finance-list">Загрузка...</div>
     </div>
@@ -463,7 +471,7 @@
         document.getElementById('auth-section').classList.add('hidden');
         document.getElementById('app-section').classList.remove('hidden');
         document.getElementById('user-email').innerText = user.email;
-        loadFinanceData();
+        loadFinanceBalance();
       } else {
         document.getElementById('auth-section').classList.remove('hidden');
         document.getElementById('app-section').classList.add('hidden');
@@ -506,56 +514,31 @@
       });
       document.getElementById('sub-chips-wrapper').classList.add('hidden');
 
-      loadFinanceData();
+      loadFinanceBalance();
     }
 
     async function deleteFinance(id) {
       if (!confirm('Удалить эту запись?')) return;
       await dbClient.from('finance').delete().eq('id', id);
-      loadFinanceData();
+      loadFinanceBalance();
       loadFullHistory();
     }
 
-    // Загрузка баланса и списка на главном экране
-    async function loadFinanceData() {
-      const { data } = await dbClient.from('finance').select('*').order('created_at', { ascending: false });
+    // Загрузка только баланса для главного экрана
+    async function loadFinanceBalance() {
+      const { data } = await dbClient.from('finance').select('*');
       const balanceEl = document.getElementById('total-balance');
-      const mainListEl = document.getElementById('main-finance-list');
-      
-      if (!data || data.length === 0) {
-        balanceEl.innerText = '0 ₽';
-        mainListEl.innerHTML = '<p style="color:#666; text-align:center;">Записей пока нет</p>';
-        return;
-      }
+      if (!data || data.length === 0) { balanceEl.innerText = '0 ₽'; return; }
 
       let total = 0;
-      let listHtml = '';
-
-      data.forEach((item, index) => {
+      data.forEach(item => {
         if (item.type === 'income') total += Number(item.amount);
         else if (item.type === 'expense') total -= Number(item.amount);
-
-        // Отображаем последние записи на главном экране
-        let color = '#ef4444';
-        let sign = '-';
-        if (item.type === 'income') { color = '#10b981'; sign = '+'; }
-        else if (item.type === 'transfer') { color = '#3b82f6'; sign = '↔ '; }
-
-        listHtml += `
-          <div class="list-item-compact ${item.type}">
-            <div><b>${item.category}</b></div>
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span style="font-weight:bold; color:${color}">${sign}${item.amount} ₽</span>
-              <button class="delete-btn" onclick="deleteFinance('${item.id}')">🗑️</button>
-            </div>
-          </div>
-        `;
       });
-
       balanceEl.innerText = `${total > 0 ? '+' : ''}${total} ₽`;
-      mainListEl.innerHTML = listHtml;
     }
 
+    // Загрузка отдельного экрана истории с подсчетом суммы за каждый день
     async function loadFullHistory() {
       const { data } = await dbClient.from('finance').select('*').order('created_at', { ascending: false });
       const container = document.getElementById('grouped-finance-list');
@@ -575,7 +558,23 @@
 
       let html = '';
       for (const [date, items] of Object.entries(groups)) {
-        html += `<div class="date-divider">${date}</div>`;
+        // Подсчет общей суммы за конкретный день
+        let dayTotal = 0;
+        items.forEach(item => {
+          if (item.type === 'income') dayTotal += Number(item.amount);
+          else if (item.type === 'expense') dayTotal -= Number(item.amount);
+        });
+
+        const dayTotalSign = dayTotal > 0 ? '+' : '';
+        const dayTotalFormatted = `${dayTotalSign}${dayTotal} ₽`;
+
+        html += `
+          <div class="date-divider">
+            <span>${date}</span>
+            <span>Итого: ${dayTotalFormatted}</span>
+          </div>
+        `;
+
         items.forEach(item => {
           let color = '#ef4444';
           let sign = '-';
