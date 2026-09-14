@@ -1,392 +1,388 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Life Control</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: #121212; color: #fff; margin: 0; padding: 15px; padding-bottom: 90px; }
-    
-    .card { background: #1e1e1e; padding: 16px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #333; }
-    h2 { margin-top: 0; font-size: 1.2rem; color: #10b981; }
-    input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px; border: 1px solid #333; background: #2a2a2a; color: #fff; font-size: 0.95rem; }
-    button { background: #10b981; color: #000; font-weight: bold; border: none; cursor: pointer; }
-    button:active { opacity: 0.8; }
-    .hidden { display: none !important; }
-    
-    .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .app-title { font-size: 1.3rem; font-weight: bold; color: #10b981; margin: 0; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life Control - Финансы</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --accent-green: #2ecc71;
+            --accent-red: #e74c3c;
+            --text-main: #ffffff;
+            --text-secondary: #aaaaaa;
+            --date-color: #f1c40f; /* Цвет даты */
+        }
 
-    /* Кликабельная плашка "История операций" */
-    .history-link-card { 
-      background: #1e1e1e; 
-      padding: 14px 16px; 
-      border-radius: 12px; 
-      border: 1px solid #333; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center;
-      gap: 12px;
-      cursor: pointer; 
-      font-weight: 600; 
-      font-size: 1rem;
-      user-select: none;
-      transition: background 0.15s ease, border-color 0.15s ease;
-    }
-    .history-link-card:active { background: #2a2a2a; border-color: #8b5cf6; }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
 
-    /* Заголовок с кнопкой Назад и переключателем вида */
-    .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
-    .back-btn { background: none; border: none; color: #10b981; font-size: 1rem; width: auto; margin: 0; padding: 4px 8px; cursor: pointer; font-weight: bold; }
-    .view-toggle { background: #2a2a2a; border: 1px solid #444; color: #aaa; padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; margin-left: auto; width: auto; font-weight: bold; }
-    .view-toggle:active { background: #333; }
+        header {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2c2c2c;
+        }
 
-    /* Микро-разделитель по дням */
-    .date-divider { font-size: 0.68rem; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #262626; margin: 10px 0 4px 0; padding-bottom: 2px; }
+        header h1 {
+            font-size: 20px;
+            color: var(--accent-green);
+            margin: 0;
+        }
 
-    /* Ультракомпактные строки транзакций */
-    .list-item-compact { background: #1c1c1c; padding: 8px 10px; border-radius: 6px; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid #10b981; font-size: 0.85rem; }
-    .list-item-compact.expense { border-left-color: #ef4444; }
-    .delete-btn { background: none; border: none; color: #555; font-size: 0.8rem; padding: 2px 6px; width: auto; margin: 0; cursor: pointer; }
-    
-    .balance-box { background: #172554; border: 1px solid #1d4ed8; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 12px; }
-    .balance-val { font-size: 1.4rem; font-weight: bold; color: #60a5fa; }
+        .container {
+            flex: 1;
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            padding-bottom: 80px;
+        }
 
-    /* Микро-подвал */
-    .mini-footer { text-align: center; font-size: 0.75rem; color: #666; padding: 10px 0; margin-top: 15px; border-top: 1px dashed #333; display: flex; justify-content: center; align-items: center; gap: 10px; }
-    .mini-footer button { width: auto; padding: 4px 8px; font-size: 0.75rem; background: #333; color: #ef4444; margin: 0; }
+        .day-group {
+            margin-bottom: 24px;
+        }
 
-    /* Нижнее меню */
-    .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #181818; border-top: 1px solid #333; display: flex; justify-content: space-around; padding: 8px 0; z-index: 50; }
-    .nav-btn { background: none; border: none; color: #888; font-size: 0.7rem; width: auto; margin: 0; padding: 4px; }
-    .nav-btn.active { color: #10b981; font-weight: bold; }
-  </style>
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--date-color);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Цвет итога дня автоматически совпадает с цветом даты благодаря inherit */
+        .day-total {
+            color: inherit;
+        }
+
+        .transaction-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border-left: 4px solid transparent;
+        }
+
+        /* Метки приоритетов для визуального разделения */
+        .transaction-card.priority-1 {
+            border-left-color: var(--accent-red);
+        }
+
+        .transaction-card.priority-2 {
+            border-left-color: #3498db;
+        }
+
+        .transaction-card.income {
+            border-left-color: var(--accent-green);
+        }
+
+        .tx-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .tx-title {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .tx-category {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .tx-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tx-amount {
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .tx-amount.expense {
+            color: #ff6b6b;
+        }
+
+        .tx-amount.income {
+            color: var(--accent-green);
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            padding: 4px;
+        }
+
+        .action-btn:hover {
+            opacity: 1;
+        }
+
+        /* Нижняя навигация */
+        nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #181818;
+            border-top: 1px solid #2c2c2c;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
+
+        .nav-item {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-item.active {
+            color: var(--accent-green);
+        }
+
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .modal-content input, .modal-content select {
+            background: #2a2a2a;
+            border: 1px solid #3c3c3c;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-save { background: var(--accent-green); color: black; }
+        .btn-cancel { background: #3a3a3a; color: white; }
+    </style>
 </head>
 <body>
 
-  <!-- Экран авторизации -->
-  <div id="auth-section" class="card">
-    <h2>Вход / Регистрация</h2>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Пароль">
-    <button onclick="signUp()">Зарегистрироваться</button>
-    <button onclick="signIn()" style="background:#3b82f6; color:#fff;">Войти</button>
-    <div id="status-msg" style="margin-top:10px; font-size:0.85rem; text-align:center;"></div>
-  </div>
+    <header>
+        <h1>Life Control</h1>
+        <span style="font-size: 14px; color: var(--text-secondary);">Вид: Сбоку</span>
+    </header>
 
-  <!-- Главное приложение -->
-  <div id="app-section" class="hidden">
-
-    <div class="app-header">
-      <div class="app-title">Life Control</div>
+    <div class="container" id="app-container">
+        <!-- Сюда динамически рендерится список транзакций -->
     </div>
 
-    <!-- Вкладка: Финансы (Главный экран) -->
-    <div id="tab-finance" class="tab-content">
-      <div class="card">
-        <h2>💰 Финансы</h2>
-        <div class="balance-box">
-          <div style="font-size:0.8rem; color:#93c5fd;">Итоговый баланс</div>
-          <div id="total-balance" class="balance-val">0 ₽</div>
+    <!-- Модальное окно редактирования -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <h3>Редактировать транзакцию</h3>
+            <input type="hidden" id="editId">
+            <label>Название:</label>
+            <input type="text" id="editTitle">
+            <label>Сумма (с минусом для расходов):</label>
+            <input type="number" id="editAmount">
+            <label>Категория и приоритет:</label>
+            <select id="editCategory">
+                <option value="1">1-й порядок (Квартира, КУ, Кредиты, Питание, Налоги)</option>
+                <option value="2">2-й порядок (Хотелки, Покушалки, Развлечения)</option>
+                <option value="0">Доход (ЗП и др.)</option>
+            </select>
+            <div class="modal-buttons">
+                <button class="btn btn-cancel" onclick="closeModal()">Отмена</button>
+                <button class="btn btn-save" onclick="saveTransaction()">Сохранить</button>
+            </div>
         </div>
-        <input type="number" id="fin-amount" placeholder="Сумма (руб.)">
-        <input type="text" id="fin-category" placeholder="Категория (Еда, Зарплата...)">
-        <select id="fin-type">
-          <option value="expense">Расход</option>
-          <option value="income">Доход</option>
-        </select>
-        <button onclick="addFinance()">Добавить запись</button>
-      </div>
-
-      <!-- Кликабельная кнопка перехода в историю с детализированной иконкой карты -->
-      <div class="history-link-card" onclick="openHistoryScreen()">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="44" height="44">
-          <defs>
-            <linearGradient id="neonGradient" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#3B52F6" />
-              <stop offset="45%" stop-color="#8A3CF4" />
-              <stop offset="100%" stop-color="#E048C8" />
-            </linearGradient>
-          </defs>
-          <path d="M 275,148 H 68 A 36,36 0 0,0 32,184 V 416 A 36,36 0 0,0 68,452 H 444 A 36,36 0 0,0 480,416 V 270" 
-                fill="none" stroke="url(#neonGradient)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" />
-          <line x1="32" y1="298" x2="480" y2="298" stroke="url(#neonGradient)" stroke-width="15" />
-          <g fill="none" stroke="url(#neonGradient)">
-            <rect x="58" y="180" width="96" height="88" rx="18" stroke-width="5" />
-            <rect x="91" y="209" width="30" height="30" rx="4" stroke-width="4" />
-            <line x1="58" y1="224" x2="91" y2="224" stroke-width="4" />
-            <line x1="121" y1="224" x2="154" y2="224" stroke-width="4" />
-            <line x1="106" y1="180" x2="106" y2="209" stroke-width="4" />
-            <line x1="106" y1="239" x2="106" y2="268" stroke-width="4" />
-            <path d="M 76,180 V 204 A 12,12 0 0,0 88,216 H 91" stroke-width="4" stroke-linecap="round" />
-            <path d="M 136,180 V 204 A 12,12 0 0,1 124,216 H 121" stroke-width="4" stroke-linecap="round" />
-            <path d="M 76,268 V 244 A 12,12 0 0,1 88,232 H 91" stroke-width="4" stroke-linecap="round" />
-            <path d="M 136,268 V 244 A 12,12 0 0,0 124,232 H 121" stroke-width="4" stroke-linecap="round" />
-          </g>
-          <g fill="url(#neonGradient)" font-family="monospace, 'Courier New', sans-serif" font-weight="900" font-size="30" letter-spacing="2">
-            <text x="54" y="348">4532</text>
-            <text x="154" y="348">7812</text>
-            <text x="254" y="348">3456</text>
-            <text x="354" y="348">9012</text>
-          </g>
-          <g fill="url(#neonGradient)" font-family="sans-serif">
-            <text x="210" y="380" font-size="11" font-weight="800" letter-spacing="1">VALID THRU</text>
-            <text x="210" y="405" font-family="monospace, sans-serif" font-size="20" font-weight="900">12/28</text>
-          </g>
-          <g fill="url(#neonGradient)" font-family="sans-serif">
-            <text x="54" y="435" font-size="24" font-weight="900" letter-spacing="2">CARDHOLDER NAME</text>
-          </g>
-          <rect x="285" y="60" width="195" height="195" rx="42" fill="none" stroke="url(#neonGradient)" stroke-width="15" stroke-linejoin="round" />
-          <g fill="url(#neonGradient)">
-            <path d="M 330,146 C 330,128 348,116 368,116 H 410 V 98 L 466,131 L 410,164 V 146 Z" />
-            <path d="M 435,179 C 435,197 417,209 397,209 H 355 V 227 L 299,194 L 355,161 V 179 Z" />
-          </g>
-        </svg>
-        <span>История операций</span>
-      </div>
     </div>
 
-    <!-- Отдельный экран: Последние операции -->
-    <div id="screen-history" class="tab-content hidden">
-      <div class="screen-header">
-        <button class="back-btn" onclick="closeHistoryScreen()">← Назад</button>
-        <h2 style="margin:0;">Операции</h2>
-        <!-- Кнопка переключения вида -->
-        <button class="view-toggle" onclick="toggleHistoryView()" id="toggle-view-btn">Вид: Сбоку</button>
-      </div>
-      <div id="grouped-finance-list">Загрузка...</div>
-    </div>
+    <nav>
+        <a href="#" class="nav-item active">💰 Финансы</a>
+        <a href="#" class="nav-item">🎯 Привычки</a>
+        <a href="#" class="nav-item">🎬 Медиа</a>
+        <a href="#" class="nav-item">📅 События</a>
+    </nav>
 
-    <!-- Вкладка: Привычки -->
-    <div id="tab-habits" class="tab-content hidden">
-      <div class="card">
-        <h2>🎯 Привычки</h2>
-        <input type="text" id="habit-title" placeholder="Название привычки">
-        <button onclick="addHabit()">Добавить привычку</button>
-      </div>
-      <div class="card">
-        <h2>Мои привычки</h2>
-        <div id="habits-list">Загрузка...</div>
-      </div>
-    </div>
+    <script>
+        // Демо-данные с учетом приоритетов (priority: 0 - доходы, 1 - 1-й порядок, 2 - 2-й порядок)
+        let transactionsData = [
+            {
+                date: "14 СЕНТЯБРЯ 2026 Г.",
+                items: [
+                    { id: 1, title: "Зп", amount: 90000, type: "income", priority: 0, categoryName: "Доход" },
+                    { id: 2, title: "Налог (сентябрь/окт)", amount: -7000, type: "expense", priority: 1, categoryName: "1-й порядок" },
+                    { id: 3, title: "Кредитка Тинькофф", amount: -15000, type: "expense", priority: 1, categoryName: "1-й порядок" },
+                    { id: 4, title: "КУ", amount: -2000, type: "expense", priority: 1, categoryName: "1-й порядок" },
+                    { id: 5, title: "Сплит Я", amount: -16400, type: "expense", priority: 2, categoryName: "2-й порядок" },
+                    { id: 6, title: "Альфа", amount: -1512, type: "expense", priority: 1, categoryName: "1-й порядок" }
+                ]
+            },
+            {
+                date: "13 СЕНТЯБРЯ 2026 Г.",
+                items: [
+                    { id: 7, title: "Зп", amount: 500, type: "income", priority: 0, categoryName: "Доход" },
+                    { id: 8, title: "Такси", amount: -500, type: "expense", priority: 1, categoryName: "1-й порядок" },
+                    { id: 9, title: "Шаурма", amount: -583, type: "expense", priority: 2, categoryName: "2-й порядок" }
+                ]
+            }
+        ];
 
-    <!-- Вкладка: Медиа -->
-    <div id="tab-media" class="tab-content hidden">
-      <div class="card">
-        <h2>🎬 Медиа-лог</h2>
-        <input type="text" id="media-title" placeholder="Название">
-        <button onclick="addMedia()">Сохранить</button>
-      </div>
-      <div class="card">
-        <h2>Просмотрено / Прочитано</h2>
-        <div id="media-list">Загрузка...</div>
-      </div>
-    </div>
+        function renderApp() {
+            const container = document.getElementById('app-container');
+            container.innerHTML = '';
 
-    <!-- Вкладка: События -->
-    <div id="tab-events" class="tab-content hidden">
-      <div class="card">
-        <h2>📅 События</h2>
-        <input type="text" id="event-title" placeholder="Что сделать">
-        <button onclick="addEvent()">Создать событие</button>
-      </div>
-      <div class="card">
-        <h2>Ближайшие события</h2>
-        <div id="events-list">Загрузка...</div>
-      </div>
-    </div>
+            transactionsDataforEachDay = transactionsData.map(dayGroup => {
+                // Сортировка внутри дня: сначала доходы и 1-й порядок (priority 0, 1), затем 2-й порядок (priority 2)
+                const sortedItems = [...dayGroup.items].sort((a, b) => a.priority - b.priority);
+                
+                // Подсчет итогов дня
+                const dayTotal = sortedItems.reduce((acc, item) => acc + item.amount, 0);
+                const totalFormatted = (dayTotal > 0 ? '+' : '') + dayTotal.toLocaleString() + ' ₽';
 
-    <!-- Микро-подвал -->
-    <div class="mini-footer">
-      <span id="user-email"></span>
-      <button onclick="signOut()">Выйти</button>
-    </div>
+                let itemsHtml = sortedItems.map(item => `
+                    <div class="transaction-card priority-${item.priority} ${item.type === 'income' ? 'income' : ''}">
+                        <div class="tx-info">
+                            <span class="tx-title">${item.title}</span>
+                            <span class="tx-category">${item.categoryName}</span>
+                        </div>
+                        <div class="tx-right">
+                            <span class="tx-amount ${item.type}">
+                                ${item.amount > 0 ? '+' : ''}${item.amount.toLocaleString()} ₽
+                            </span>
+                            <button class="action-btn" onclick="openEditModal(${item.id})" title="Редактировать">✏️</button>
+                            <button class="action-btn" onclick="deleteTransaction(${item.id})" title="Удалить">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
 
-    <!-- Нижнее меню -->
-    <div class="nav-bar">
-      <button class="nav-btn active" onclick="switchTab('finance', event)">💰<br>Финансы</button>
-      <button class="nav-btn" onclick="switchTab('habits', event)">🎯<br>Привычки</button>
-      <button class="nav-btn" onclick="switchTab('media', event)">🎬<br>Медиа</button>
-      <button class="nav-btn" onclick="switchTab('events', event)">📅<br>События</button>
-    </div>
+                return `
+                    <div class="day-group">
+                        <div class="day-header">
+                            <span>${dayGroup.date}</span>
+                            <span class="day-total">${totalFormatted}</span>
+                        </div>
+                        ${itemsHtml}
+                    </div>
+                `;
+            }).join('');
 
-  </div>
-
-  <script>
-    const SUPABASE_URL = 'https://hahjitpsjfyyarbwuany.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_tJkQSQCdITF9sqrbGBvg4g_DCRAEZ4O';
-    const dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    let currentUser = null;
-    let historyViewMode = 'inline'; // 'inline' (сбоку) или 'stacked' (снизу)
-
-    function toggleHistoryView() {
-      historyViewMode = historyViewMode === 'inline' ? 'stacked' : 'inline';
-      const btn = document.getElementById('toggle-view-btn');
-      btn.innerText = historyViewMode === 'inline' ? 'Вид: Сбоку' : 'Вид: Снизу';
-      loadFullHistory();
-    }
-
-    function switchTab(tabName, evt) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-      
-      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-      if (evt) evt.currentTarget.classList.add('active');
-    }
-
-    function openHistoryScreen() {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.getElementById('screen-history').classList.remove('hidden');
-      loadFullHistory();
-    }
-
-    function closeHistoryScreen() {
-      document.getElementById('screen-history').classList.add('hidden');
-      document.getElementById('tab-finance').classList.remove('hidden');
-    }
-
-    async function checkUser() {
-      const { data: { user } } = await dbClient.auth.getUser();
-      if (user) {
-        currentUser = user;
-        document.getElementById('auth-section').classList.add('hidden');
-        document.getElementById('app-section').classList.remove('hidden');
-        document.getElementById('user-email').innerText = user.email;
-        loadFinanceBalance();
-      } else {
-        document.getElementById('auth-section').classList.remove('hidden');
-        document.getElementById('app-section').classList.add('hidden');
-      }
-    }
-
-    async function signUp() {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const { error } = await dbClient.auth.signUp({ email, password });
-      if (error) alert(error.message);
-      else alert('Успешно! Теперь нажмите Войти');
-    }
-
-    async function signIn() {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const { error } = await dbClient.auth.signInWithPassword({ email, password });
-      if (error) alert(error.message);
-      else checkUser();
-    }
-
-    async function signOut() {
-      await dbClient.auth.signOut();
-      checkUser();
-    }
-
-    // --- ФИНАНСЫ ---
-    async function addFinance() {
-      const amount = parseFloat(document.getElementById('fin-amount').value);
-      const category = document.getElementById('fin-category').value.trim();
-      const type = document.getElementById('fin-type').value;
-      if (!amount || !category) return alert('Заполните данные');
-
-      await dbClient.from('finance').insert([{ user_id: currentUser.id, amount, category, type }]);
-      document.getElementById('fin-amount').value = '';
-      document.getElementById('fin-category').value = '';
-      loadFinanceBalance();
-    }
-
-    async function deleteFinance(id) {
-      if (!confirm('Удалить эту запись?')) return;
-      await dbClient.from('finance').delete().eq('id', id);
-      loadFinanceBalance();
-      loadFullHistory();
-    }
-
-    async function loadFinanceBalance() {
-      const { data } = await dbClient.from('finance').select('*');
-      const balanceEl = document.getElementById('total-balance');
-      if (!data || data.length === 0) { balanceEl.innerText = '0 ₽'; return; }
-
-      let total = 0;
-      data.forEach(item => {
-        if (item.type === 'income') total += Number(item.amount);
-        else total -= Number(item.amount);
-      });
-      balanceEl.innerText = `${total > 0 ? '+' : ''}${total} ₽`;
-    }
-
-    async function loadFullHistory() {
-      const { data } = await dbClient.from('finance').select('*').order('created_at', { ascending: false });
-      const container = document.getElementById('grouped-finance-list');
-      
-      if (!data || data.length === 0) {
-        container.innerHTML = '<p style="color:#666; text-align:center;">Записей нет</p>';
-        return;
-      }
-
-      // Группировка по дням
-      const groups = {};
-      data.forEach(item => {
-        const d = new Date(item.created_at);
-        const dateKey = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
-        if (!groups[dateKey]) groups[dateKey] = [];
-        groups[dateKey].push(item);
-      });
-
-      let html = '';
-      for (const [date, items] of Object.entries(groups)) {
-        // Подсчет итога за день
-        let dailyTotal = 0;
-        items.forEach(item => {
-          if (item.type === 'income') dailyTotal += Number(item.amount);
-          else dailyTotal -= Number(item.amount);
-        });
-        
-        const totalColor = dailyTotal > 0 ? '#10b981' : (dailyTotal < 0 ? '#ef4444' : '#666');
-        const sign = dailyTotal > 0 ? '+' : '';
-
-        // Отрисовка в зависимости от выбранного режима
-        if (historyViewMode === 'inline') {
-          html += `
-            <div class="date-divider" style="display: flex; justify-content: space-between; align-items: center;">
-              <span>${date}</span>
-              <span style="color: ${totalColor}; font-weight: 700; font-size: 0.75rem; text-transform: none;">
-                ${sign}${dailyTotal} ₽
-              </span>
-            </div>
-          `;
-        } else {
-          html += `
-            <div class="date-divider" style="display: flex; flex-direction: column; gap: 4px; padding-bottom: 6px;">
-              <span>${date}</span>
-              <span style="color: ${totalColor}; font-weight: 700; font-size: 0.75rem; text-transform: none;">
-                Итог: ${sign}${dailyTotal} ₽
-              </span>
-            </div>
-          `;
+            container.innerHTML = transactionsDataforEachDay;
         }
 
-        items.forEach(item => {
-          html += `
-            <div class="list-item-compact ${item.type}">
-              <div>
-                <b>${item.category}</b>
-              </div>
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span style="font-weight:bold; color:${item.type === 'income' ? '#10b981' : '#ef4444'}">
-                  ${item.type === 'income' ? '+' : '-'}${item.amount} ₽
-                </span>
-                <button class="delete-btn" onclick="deleteFinance('${item.id}')">🗑️</button>
-              </div>
-            </div>
-          `;
-        });
-      }
-      container.innerHTML = html;
-    }
+        // Функции редактирования
+        function openEditModal(id) {
+            let foundItem = null;
+            transactionsData.forEach(day => {
+                const item = day.items.find(i => i.id === id);
+                if (item) foundItem = item;
+            });
 
-    checkUser();
-  </script>
+            if (foundItem) {
+                document.getElementById('editId').value = foundItem.id;
+                document.getElementById('editTitle').value = foundItem.title;
+                document.getElementById('editAmount').value = foundItem.amount;
+                document.getElementById('editCategory').value = foundItem.priority;
+                document.getElementById('editModal').style.display = 'flex';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        function saveTransaction() {
+            const id = parseInt(document.getElementById('editId').value);
+            const title = document.getElementById('editTitle').value;
+            const amount = parseFloat(document.getElementById('editAmount').value);
+            const priority = parseInt(document.getElementById('editCategory').value);
+            const type = priority === 0 ? 'income' : 'expense';
+            const categoryName = priority === 0 ? 'Доход' : (priority === 1 ? '1-й порядок' : '2-й порядок');
+
+            transactionsData.forEach(day => {
+                const item = day.items.find(i => i.id === id);
+                if (item) {
+                    item.title = title;
+                    item.amount = amount;
+                    item.priority = priority;
+                    item.type = type;
+                    item.categoryName = categoryName;
+                }
+            });
+
+            closeModal();
+            renderApp();
+        }
+
+        function deleteTransaction(id) {
+            if (confirm("Удалить эту транзакцию?")) {
+                transactionsData.forEach(day => {
+                    day.items = day.items.filter(i => i.id !== id);
+                });
+                renderApp();
+            }
+        }
+
+        // Первичный запуск отрисовки
+        renderApp();
+    </script>
 </body>
 </html>
