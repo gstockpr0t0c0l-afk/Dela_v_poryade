@@ -19,6 +19,29 @@
     .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
     .app-title { font-size: 1.3rem; font-weight: bold; color: #10b981; margin: 0; }
 
+    /* Двухуровневые категории (Чипсы) */
+    .chips-section { margin: 8px 0; display: flex; flex-direction: column; gap: 8px; }
+    .chips-label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+    .chips-container { display: flex; flex-wrap: wrap; gap: 6px; }
+    
+    .chip-btn {
+      width: auto;
+      padding: 6px 12px;
+      margin: 0;
+      font-size: 0.82rem;
+      border-radius: 16px;
+      background: #262626;
+      color: #ccc;
+      border: 1px solid #3d3d3d;
+      cursor: pointer;
+      font-weight: normal;
+      transition: all 0.15s ease;
+    }
+    .chip-btn:active { transform: scale(0.95); }
+    .chip-btn.active-main { background: #8b5cf6; color: #fff; border-color: #a78bfa; font-weight: bold; }
+    .chip-btn.sub-chip { background: #1e293b; color: #94a3b8; border-color: #334155; }
+    .chip-btn.active-sub { background: #10b981; color: #000; border-color: #34d399; font-weight: bold; }
+
     /* Кликабельная плашка "История операций" */
     .history-link-card { 
       background: #1e1e1e; 
@@ -57,7 +80,7 @@
     .mini-footer button { width: auto; padding: 4px 8px; font-size: 0.75rem; background: #333; color: #ef4444; margin: 0; }
 
     /* Нижнее меню */
-    .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #181818; border-top: 1px solid #333; display: flex; justify-content: space-around; padding: 8px 0; z-index: 50; }
+    .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #181818; border-top: 1px solid #333; display: flex; justify-around; padding: 8px 0; z-index: 50; }
     .nav-btn { background: none; border: none; color: #888; font-size: 0.7rem; width: auto; margin: 0; padding: 4px; }
     .nav-btn.active { color: #10b981; font-weight: bold; }
   </style>
@@ -89,8 +112,31 @@
           <div style="font-size:0.8rem; color:#93c5fd;">Итоговый баланс</div>
           <div id="total-balance" class="balance-val">0 ₽</div>
         </div>
+
         <input type="number" id="fin-amount" placeholder="Сумма (руб.)">
-        <input type="text" id="fin-category" placeholder="Категория (Еда, Зарплата...)">
+        
+        <!-- Поле категории и кнопки выбора -->
+        <input type="text" id="fin-category" placeholder="Категория (выберите ниже или введите)">
+        
+        <div class="chips-section">
+          <!-- 1 порядок: Основные категории -->
+          <div class="chips-label">Категория (1 порядок)</div>
+          <div class="chips-container" id="main-chips">
+            <button class="chip-btn" onclick="selectMainCategory('Продукты')">🛒 Продукты</button>
+            <button class="chip-btn" onclick="selectMainCategory('Дом / Был')">🏠 Дом</button>
+            <button class="chip-btn" onclick="selectMainCategory('Авто')">🚗 Авто</button>
+            <button class="chip-btn" onclick="selectMainCategory('Здоровье')">💊 Здоровье</button>
+            <button class="chip-btn" onclick="selectMainCategory('Доходы')">💵 Доходы</button>
+            <button class="chip-btn" onclick="selectMainCategory('Развлечения')">🎬 Развлечения</button>
+          </div>
+
+          <!-- 2 порядок: Уточнения / Приоритет -->
+          <div id="sub-chips-wrapper" class="hidden">
+            <div class="chips-label" style="margin-top: 4px;">Приоритет / Подкатегория (2 порядок)</div>
+            <div class="chips-container" id="sub-chips"></div>
+          </div>
+        </div>
+
         <select id="fin-type">
           <option value="expense">Расход</option>
           <option value="income">Доход</option>
@@ -98,7 +144,7 @@
         <button onclick="addFinance()">Добавить запись</button>
       </div>
 
-      <!-- Кликабельная кнопка перехода в историю с новым SVG -->
+      <!-- Кликабельная кнопка перехода в историю с SVG -->
       <div class="history-link-card" onclick="openHistoryScreen()">
         <svg width="34" height="34" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -108,15 +154,8 @@
               <stop offset="100%" stop-color="#E048C8" />
             </linearGradient>
           </defs>
-
-          <!-- Контур карты -->
-          <path d="M 275,148 H 68 A 36,36 0 0,0 32,184 V 416 A 36,36 0 0,0 68,452 H 444 A 36,36 0 0,0 480,416 V 270" 
-                fill="none" stroke="url(#neonGradient)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" />
-
-          <!-- Разделительная линия -->
+          <path d="M 275,148 H 68 A 36,36 0 0,0 32,184 V 416 A 36,36 0 0,0 68,452 H 444 A 36,36 0 0,0 480,416 V 270" fill="none" stroke="url(#neonGradient)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" />
           <line x1="32" y1="298" x2="480" y2="298" stroke="url(#neonGradient)" stroke-width="15" />
-
-          <!-- EMV-чип (утонченный) -->
           <g fill="none" stroke="url(#neonGradient)">
             <rect x="58" y="180" width="96" height="88" rx="18" stroke-width="5" />
             <rect x="91" y="209" width="30" height="30" rx="4" stroke-width="4" />
@@ -129,19 +168,13 @@
             <path d="M 76,268 V 244 A 12,12 0 0,1 88,232 H 91" stroke-width="4" stroke-linecap="round" />
             <path d="M 136,268 V 244 A 12,12 0 0,0 124,232 H 121" stroke-width="4" stroke-linecap="round" />
           </g>
-
-          <!-- Номер карты (жирный, опущен вниз) -->
           <g fill="url(#neonGradient)" stroke="url(#neonGradient)" stroke-width="1.5" font-family="monospace, 'Courier New', sans-serif" font-weight="900" font-size="26" letter-spacing="2">
             <text x="50" y="388">4532</text>
             <text x="154" y="388">7812</text>
             <text x="258" y="388">3456</text>
             <text x="362" y="388">9012</text>
           </g>
-
-          <!-- Плашка истории -->
           <rect x="285" y="60" width="195" height="195" rx="42" fill="none" stroke="url(#neonGradient)" stroke-width="15" stroke-linejoin="round" />
-
-          <!-- Стрелки обмена -->
           <g fill="url(#neonGradient)">
             <path d="M 330,146 C 330,128 348,116 368,116 H 410 V 98 L 466,131 L 410,164 V 146 Z" />
             <path d="M 435,179 C 435,197 417,209 397,209 H 355 V 227 L 299,194 L 355,161 V 179 Z" />
@@ -151,7 +184,7 @@
       </div>
     </div>
 
-    <!-- Отдельный экран: Последние операции -->
+    <!-- Экран: Последние операции -->
     <div id="screen-history" class="tab-content hidden">
       <div class="screen-header">
         <button class="back-btn" onclick="closeHistoryScreen()">← Назад</button>
@@ -199,7 +232,7 @@
       </div>
     </div>
 
-    <!-- Микро-подвал -->
+    <!-- Подвал -->
     <div class="mini-footer">
       <span id="user-email"></span>
       <button onclick="signOut()">Выйти</button>
@@ -221,6 +254,55 @@
     const dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUser = null;
+    let selectedMain = '';
+
+    // Данные для 2 порядка (Приоритетные подкатегории)
+    const subCategoriesMap = {
+      'Продукты': ['Супермаркет', 'Гриль / Шашлык', 'Чай / Напитки', 'Перекус'],
+      'Дом / Быт': ['Коммуналка', 'Стройка / Ремонт', 'Бытовая техника', 'Интерьер'],
+      'Авто': ['ГАЗ / ГБО', 'Бензин', 'ТО / Запчасти', 'Мойка'],
+      'Здоровье': ['Аптека', 'Спорт / Тренажерка', 'МФР / Восстановление'],
+      'Доходы': ['Зарплата (ТК)', 'Подработка / Стройка', 'Самозанятость', 'Крипта'],
+      'Развлечения': ['Кино / Сериалы', 'Кафе / Ресторан', 'Игры / Софт']
+    };
+
+    function selectMainCategory(mainCat) {
+      selectedMain = mainCat;
+      document.getElementById('fin-category').value = mainCat;
+      
+      // Авто-переключение типа операции
+      if (mainCat === 'Доходы') {
+        document.getElementById('fin-type').value = 'income';
+      } else {
+        document.getElementById('fin-type').value = 'expense';
+      }
+
+      // Выделение активной кнопки 1 порядка
+      document.querySelectorAll('#main-chips .chip-btn').forEach(btn => {
+        btn.classList.toggle('active-main', btn.innerText.includes(mainCat));
+      });
+
+      // Отображение 2 порядка
+      const subContainer = document.getElementById('sub-chips');
+      const subWrapper = document.getElementById('sub-chips-wrapper');
+      
+      const subs = subCategoriesMap[mainCat] || [];
+      if (subs.length > 0) {
+        subContainer.innerHTML = subs.map(sub => 
+          `<button class="chip-btn sub-chip" onclick="selectSubCategory('${sub}')">${sub}</button>`
+        ).join('');
+        subWrapper.classList.remove('hidden');
+      } else {
+        subWrapper.classList.add('hidden');
+      }
+    }
+
+    function selectSubCategory(subCat) {
+      document.getElementById('fin-category').value = `${selectedMain} (${subCat})`;
+      document.querySelectorAll('#sub-chips .chip-btn').forEach(btn => {
+        btn.classList.toggle('active-sub', btn.innerText === subCat);
+      });
+    }
 
     function switchTab(tabName, evt) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -276,7 +358,6 @@
       checkUser();
     }
 
-    // --- ФИНАНСЫ ---
     async function addFinance() {
       const amount = parseFloat(document.getElementById('fin-amount').value);
       const category = document.getElementById('fin-category').value.trim();
@@ -286,6 +367,13 @@
       await dbClient.from('finance').insert([{ user_id: currentUser.id, amount, category, type }]);
       document.getElementById('fin-amount').value = '';
       document.getElementById('fin-category').value = '';
+      
+      // Сброс выделения кнопок
+      document.querySelectorAll('.chip-btn').forEach(btn => {
+        btn.classList.remove('active-main', 'active-sub');
+      });
+      document.getElementById('sub-chips-wrapper').classList.add('hidden');
+
       loadFinanceBalance();
     }
 
@@ -318,7 +406,6 @@
         return;
       }
 
-      // Группировка по дням
       const groups = {};
       data.forEach(item => {
         const d = new Date(item.created_at);
