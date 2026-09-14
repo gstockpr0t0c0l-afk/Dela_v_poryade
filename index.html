@@ -113,6 +113,51 @@
     .type-btn.active-income { background: #13281c; color: #34d399; border-color: #00c853; }
     .type-btn.active-transfer { background: #14223b; color: #60a5fa; border-color: #0072ff; }
 
+    /* Кнопка вызова истории */
+    .history-trigger-btn {
+      background: #26262b;
+      color: #60a5fa;
+      border: 1px solid #1d4ed8;
+      font-weight: 600;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* Модальный экран истории операций */
+    .modal-history {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #121212;
+      z-index: 100;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+    }
+    .modal-header h3 { margin: 0; font-size: 1.2rem; color: #10b981; }
+    .close-modal-btn {
+      width: auto;
+      padding: 6px 14px;
+      margin: 0;
+      background: #333;
+      color: #fff;
+      font-size: 0.85rem;
+    }
+
     /* Разделитель даты с фиксированной суммой за день */
     .date-divider { 
       font-size: 0.68rem; 
@@ -200,11 +245,11 @@
           <div class="swipe-hint">Смахивай влево для формы ➔</div>
         </div>
 
-        <!-- ЭКРАН 2: ПРИВЫЧНАЯ ФОРМА ФИНАНСОВ И ИСТОРИЯ -->
+        <!-- ЭКРАН 2: ПРИВЫЧНАЯ ФОРМА ФИНАНСОВ -->
         <div class="page-screen" id="page-form">
           <div class="swipe-hint" style="margin-top:0; margin-bottom:10px;">⬅ Смахивай вправо для голосовой кнопки</div>
 
-          <div class="card">
+          <div class="card" style="margin-bottom: 60px;">
             <h2>💰 Финансы</h2>
             <div class="balance-box">
               <div style="font-size:0.8rem; color:#93c5fd;">Итоговый баланс</div>
@@ -268,18 +313,24 @@
             </div>
 
             <button onclick="addFinance()">Добавить запись</button>
-          </div>
-
-          <!-- Возвращенный блок истории прямо под формой -->
-          <div class="card" style="margin-bottom: 60px;">
-            <h2 style="font-size:1.05rem;">📋 История операций</h2>
-            <div id="grouped-finance-list">Загрузка...</div>
+            
+            <!-- Кнопка открытия отдельного экрана истории -->
+            <button type="button" class="history-trigger-btn" onclick="openHistoryModal()">📋 История операций</button>
           </div>
 
         </div>
 
       </div>
 
+    </div>
+
+    <!-- ОТДЕЛЬНЫЙ ЭКРАН (МОДАЛКА) ИСТОРИИ ОПЕРАЦИЙ -->
+    <div id="modal-history-screen" class="modal-history hidden">
+      <div class="modal-header">
+        <h3>📋 История операций</h3>
+        <button class="close-modal-btn" onclick="closeHistoryModal()">✕ Закрыть</button>
+      </div>
+      <div id="grouped-finance-list">Загрузка...</div>
     </div>
 
     <!-- Вкладка: Привычки -->
@@ -352,6 +403,14 @@
 
     function startVoiceRecord() {
       alert('Голосовой ввод активирован. Диктуйте...');
+    }
+
+    function openHistoryModal() {
+      document.getElementById('modal-history-screen').classList.remove('hidden');
+    }
+
+    function closeHistoryModal() {
+      document.getElementById('modal-history-screen').classList.add('hidden');
     }
 
     function setOperationType(type) {
@@ -476,7 +535,6 @@
       loadFinanceData();
     }
 
-    // Загрузка баланса и списка историй на одном экране
     async function loadFinanceData() {
       const { data } = await dbClient.from('finance').select('*').order('created_at', { ascending: false });
       
@@ -508,7 +566,6 @@
 
       let html = '';
       for (const [date, items] of Object.entries(groups)) {
-        // Подсчет общей суммы за конкретный день
         let dayTotal = 0;
         items.forEach(item => {
           if (item.type === 'income') dayTotal += Number(item.amount);
