@@ -1,150 +1,106 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Life Control</title>
-    <!-- Подключение Supabase JS Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --accent-color: #8A3CF4;
-            --text-color: #ffffff;
-            --text-secondary: #aaaaaa;
-            --border-color: #2a2a2a;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Life Control</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #121212; color: #fff; margin: 0; padding: 15px; padding-bottom: 90px; }
+    
+    .card { background: #1e1e1e; padding: 16px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #333; }
+    h2 { margin-top: 0; font-size: 1.2rem; color: #10b981; }
+    input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px; border: 1px solid #333; background: #2a2a2a; color: #fff; font-size: 0.95rem; }
+    button { background: #10b981; color: #000; font-weight: bold; border: none; cursor: pointer; }
+    button:active { opacity: 0.8; }
+    .hidden { display: none !important; }
+    
+    .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .app-title { font-size: 1.3rem; font-weight: bold; color: #10b981; margin: 0; }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+    /* Кликабельная плашка "История операций" */
+    .history-link-card { 
+      background: #1e1e1e; 
+      padding: 14px 16px; 
+      border-radius: 12px; 
+      border: 1px solid #333; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer; 
+      font-weight: 600; 
+      font-size: 1rem;
+      user-select: none;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .history-link-card:active { background: #2a2a2a; border-color: #8b5cf6; }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-        }
+    /* Заголовок с кнопкой Назад */
+    .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+    .back-btn { background: none; border: none; color: #10b981; font-size: 1rem; width: auto; margin: 0; padding: 4px 8px; cursor: pointer; font-weight: bold; }
 
-        .app-container {
-            width: 100%;
-            max-width: 480px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+    /* Микро-разделитель по дням */
+    .date-divider { font-size: 0.68rem; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #262626; margin: 10px 0 4px 0; padding-bottom: 2px; }
 
-        /* Карточка с SVG-иконкой */
-        .history-link-card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 15px;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            border: 1px solid var(--border-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+    /* Ультракомпактные строки транзакций */
+    .list-item-compact { background: #1c1c1c; padding: 8px 10px; border-radius: 6px; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid #10b981; font-size: 0.85rem; }
+    .list-item-compact.expense { border-left-color: #ef4444; }
+    .delete-btn { background: none; border: none; color: #555; font-size: 0.8rem; padding: 2px 6px; width: auto; margin: 0; cursor: pointer; }
+    
+    .balance-box { background: #172554; border: 1px solid #1d4ed8; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 12px; }
+    .balance-val { font-size: 1.4rem; font-weight: bold; color: #60a5fa; }
 
-        .history-link-card:active {
-            transform: scale(0.98);
-        }
+    /* Микро-подвал */
+    .mini-footer { text-align: center; font-size: 0.75rem; color: #666; padding: 10px 0; margin-top: 15px; border-top: 1px dashed #333; display: flex; justify-content: center; align-items: center; gap: 10px; }
+    .mini-footer button { width: auto; padding: 4px 8px; font-size: 0.75rem; background: #333; color: #ef4444; margin: 0; }
 
-        .svg-icon {
-            width: 100%;
-            max-width: 280px;
-            height: auto;
-        }
-
-        /* Общий баланс */
-        .balance-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-            text-align: center;
-            border: 1px solid var(--border-color);
-        }
-
-        .balance-title {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-        }
-
-        .balance-amount {
-            font-size: 32px;
-            font-weight: bold;
-        }
-
-        /* Список транзакций */
-        .transactions-section {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .date-divider {
-            font-size: 12px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 10px;
-        }
-
-        .transaction-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid var(--border-color);
-        }
-
-        .tx-info {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .tx-title {
-            font-size: 15px;
-            font-weight: 600;
-        }
-
-        .tx-category {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .tx-amount {
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .tx-amount.income {
-            color: #4CAF50;
-        }
-
-        .tx-amount.expense {
-            color: #FF5252;
-        }
-    </style>
+    /* Нижнее меню */
+    .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #181818; border-top: 1px solid #333; display: flex; justify-content: space-around; padding: 8px 0; z-index: 50; }
+    .nav-btn { background: none; border: none; color: #888; font-size: 0.7rem; width: auto; margin: 0; padding: 4px; }
+    .nav-btn.active { color: #10b981; font-weight: bold; }
+  </style>
 </head>
 <body>
 
-<div class="app-container">
-    
-    <!-- Интерактивный блок с новым SVG -->
-    <div class="history-link-card" id="openHistory">
-        <svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <!-- Экран авторизации -->
+  <div id="auth-section" class="card">
+    <h2>Вход / Регистрация</h2>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Пароль">
+    <button onclick="signUp()">Зарегистрироваться</button>
+    <button onclick="signIn()" style="background:#3b82f6; color:#fff;">Войти</button>
+    <div id="status-msg" style="margin-top:10px; font-size:0.85rem; text-align:center;"></div>
+  </div>
+
+  <!-- Главное приложение -->
+  <div id="app-section" class="hidden">
+
+    <div class="app-header">
+      <div class="app-title">Life Control</div>
+    </div>
+
+    <!-- Вкладка: Финансы (Главный экран) -->
+    <div id="tab-finance" class="tab-content">
+      <div class="card">
+        <h2>💰 Финансы</h2>
+        <div class="balance-box">
+          <div style="font-size:0.8rem; color:#93c5fd;">Итоговый баланс</div>
+          <div id="total-balance" class="balance-val">0 ₽</div>
+        </div>
+        <input type="number" id="fin-amount" placeholder="Сумма (руб.)">
+        <input type="text" id="fin-category" placeholder="Категория (Еда, Зарплата...)">
+        <select id="fin-type">
+          <option value="expense">Расход</option>
+          <option value="income">Доход</option>
+        </select>
+        <button onclick="addFinance()">Добавить запись</button>
+      </div>
+
+      <!-- Кликабельная кнопка перехода в историю с новым SVG -->
+      <div class="history-link-card" onclick="openHistoryScreen()">
+        <svg width="34" height="34" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="neonGradient" x1="0%" y1="100%" x2="100%" y2="0%">
               <stop offset="0%" stop-color="#3B52F6" />
@@ -153,17 +109,14 @@
             </linearGradient>
           </defs>
 
-          <!-- Темный фон -->
-          <rect width="512" height="512" fill="#000000" rx="32" />
-
-          <!-- Контур банковской карты -->
+          <!-- Контур карты -->
           <path d="M 275,148 H 68 A 36,36 0 0,0 32,184 V 416 A 36,36 0 0,0 68,452 H 444 A 36,36 0 0,0 480,416 V 270" 
                 fill="none" stroke="url(#neonGradient)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" />
 
-          <!-- Разделительная линия карты -->
+          <!-- Разделительная линия -->
           <line x1="32" y1="298" x2="480" y2="298" stroke="url(#neonGradient)" stroke-width="15" />
 
-          <!-- EMV-чип (утонченные линии) -->
+          <!-- EMV-чип (утонченный) -->
           <g fill="none" stroke="url(#neonGradient)">
             <rect x="58" y="180" width="96" height="88" rx="18" stroke-width="5" />
             <rect x="91" y="209" width="30" height="30" rx="4" stroke-width="4" />
@@ -177,7 +130,7 @@
             <path d="M 136,268 V 244 A 12,12 0 0,0 124,232 H 121" stroke-width="4" stroke-linecap="round" />
           </g>
 
-          <!-- Номер карты (опущен ниже) -->
+          <!-- Номер карты (жирный, опущен вниз) -->
           <g fill="url(#neonGradient)" stroke="url(#neonGradient)" stroke-width="1.5" font-family="monospace, 'Courier New', sans-serif" font-weight="900" font-size="26" letter-spacing="2">
             <text x="50" y="388">4532</text>
             <text x="154" y="388">7812</text>
@@ -185,7 +138,7 @@
             <text x="362" y="388">9012</text>
           </g>
 
-          <!-- Плашка истории операций -->
+          <!-- Плашка истории -->
           <rect x="285" y="60" width="195" height="195" rx="42" fill="none" stroke="url(#neonGradient)" stroke-width="15" stroke-linejoin="round" />
 
           <!-- Стрелки обмена -->
@@ -194,48 +147,209 @@
             <path d="M 435,179 C 435,197 417,209 397,209 H 355 V 227 L 299,194 L 355,161 V 179 Z" />
           </g>
         </svg>
+        <span>История операций</span>
+      </div>
     </div>
 
-    <!-- Общий баланс -->
-    <div class="balance-card">
-        <div class="balance-title">Общий баланс</div>
-        <div class="balance-amount" id="totalBalance">0 ₽</div>
+    <!-- Отдельный экран: Последние операции -->
+    <div id="screen-history" class="tab-content hidden">
+      <div class="screen-header">
+        <button class="back-btn" onclick="closeHistoryScreen()">← Назад</button>
+        <h2 style="margin:0;">Последние операции</h2>
+      </div>
+      <div id="grouped-finance-list">Загрузка...</div>
     </div>
 
-    <!-- История операций -->
-    <div class="transactions-section" id="transactionList">
-        <div class="date-divider">Сегодня</div>
-        
-        <div class="transaction-card">
-            <div class="tx-info">
-                <div class="tx-title">Супермаркет</div>
-                <div class="tx-category">Продукты</div>
+    <!-- Вкладка: Привычки -->
+    <div id="tab-habits" class="tab-content hidden">
+      <div class="card">
+        <h2>🎯 Привычки</h2>
+        <input type="text" id="habit-title" placeholder="Название привычки">
+        <button onclick="addHabit()">Добавить привычку</button>
+      </div>
+      <div class="card">
+        <h2>Мои привычки</h2>
+        <div id="habits-list">Загрузка...</div>
+      </div>
+    </div>
+
+    <!-- Вкладка: Медиа -->
+    <div id="tab-media" class="tab-content hidden">
+      <div class="card">
+        <h2>🎬 Медиа-лог</h2>
+        <input type="text" id="media-title" placeholder="Название">
+        <button onclick="addMedia()">Сохранить</button>
+      </div>
+      <div class="card">
+        <h2>Просмотрено / Прочитано</h2>
+        <div id="media-list">Загрузка...</div>
+      </div>
+    </div>
+
+    <!-- Вкладка: События -->
+    <div id="tab-events" class="tab-content hidden">
+      <div class="card">
+        <h2>📅 События</h2>
+        <input type="text" id="event-title" placeholder="Что сделать">
+        <button onclick="addEvent()">Создать событие</button>
+      </div>
+      <div class="card">
+        <h2>Ближайшие события</h2>
+        <div id="events-list">Загрузка...</div>
+      </div>
+    </div>
+
+    <!-- Микро-подвал -->
+    <div class="mini-footer">
+      <span id="user-email"></span>
+      <button onclick="signOut()">Выйти</button>
+    </div>
+
+    <!-- Нижнее меню -->
+    <div class="nav-bar">
+      <button class="nav-btn active" onclick="switchTab('finance', event)">💰<br>Финансы</button>
+      <button class="nav-btn" onclick="switchTab('habits', event)">🎯<br>Привычки</button>
+      <button class="nav-btn" onclick="switchTab('media', event)">🎬<br>Медиа</button>
+      <button class="nav-btn" onclick="switchTab('events', event)">📅<br>События</button>
+    </div>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://hahjitpsjfyyarbwuany.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_tJkQSQCdITF9sqrbGBvg4g_DCRAEZ4O';
+    const dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentUser = null;
+
+    function switchTab(tabName, evt) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+      if (evt) evt.currentTarget.classList.add('active');
+    }
+
+    function openHistoryScreen() {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById('screen-history').classList.remove('hidden');
+      loadFullHistory();
+    }
+
+    function closeHistoryScreen() {
+      document.getElementById('screen-history').classList.add('hidden');
+      document.getElementById('tab-finance').classList.remove('hidden');
+    }
+
+    async function checkUser() {
+      const { data: { user } } = await dbClient.auth.getUser();
+      if (user) {
+        currentUser = user;
+        document.getElementById('auth-section').classList.add('hidden');
+        document.getElementById('app-section').classList.remove('hidden');
+        document.getElementById('user-email').innerText = user.email;
+        loadFinanceBalance();
+      } else {
+        document.getElementById('auth-section').classList.remove('hidden');
+        document.getElementById('app-section').classList.add('hidden');
+      }
+    }
+
+    async function signUp() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const { error } = await dbClient.auth.signUp({ email, password });
+      if (error) alert(error.message);
+      else alert('Успешно! Теперь нажмите Войти');
+    }
+
+    async function signIn() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const { error } = await dbClient.auth.signInWithPassword({ email, password });
+      if (error) alert(error.message);
+      else checkUser();
+    }
+
+    async function signOut() {
+      await dbClient.auth.signOut();
+      checkUser();
+    }
+
+    // --- ФИНАНСЫ ---
+    async function addFinance() {
+      const amount = parseFloat(document.getElementById('fin-amount').value);
+      const category = document.getElementById('fin-category').value.trim();
+      const type = document.getElementById('fin-type').value;
+      if (!amount || !category) return alert('Заполните данные');
+
+      await dbClient.from('finance').insert([{ user_id: currentUser.id, amount, category, type }]);
+      document.getElementById('fin-amount').value = '';
+      document.getElementById('fin-category').value = '';
+      loadFinanceBalance();
+    }
+
+    async function deleteFinance(id) {
+      if (!confirm('Удалить эту запись?')) return;
+      await dbClient.from('finance').delete().eq('id', id);
+      loadFinanceBalance();
+      loadFullHistory();
+    }
+
+    async function loadFinanceBalance() {
+      const { data } = await dbClient.from('finance').select('*');
+      const balanceEl = document.getElementById('total-balance');
+      if (!data || data.length === 0) { balanceEl.innerText = '0 ₽'; return; }
+
+      let total = 0;
+      data.forEach(item => {
+        if (item.type === 'income') total += Number(item.amount);
+        else total -= Number(item.amount);
+      });
+      balanceEl.innerText = `${total > 0 ? '+' : ''}${total} ₽`;
+    }
+
+    async function loadFullHistory() {
+      const { data } = await dbClient.from('finance').select('*').order('created_at', { ascending: false });
+      const container = document.getElementById('grouped-finance-list');
+      
+      if (!data || data.length === 0) {
+        container.innerHTML = '<p style="color:#666; text-align:center;">Записей нет</p>';
+        return;
+      }
+
+      // Группировка по дням
+      const groups = {};
+      data.forEach(item => {
+        const d = new Date(item.created_at);
+        const dateKey = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+        if (!groups[dateKey]) groups[dateKey] = [];
+        groups[dateKey].push(item);
+      });
+
+      let html = '';
+      for (const [date, items] of Object.entries(groups)) {
+        html += `<div class="date-divider">${date}</div>`;
+        items.forEach(item => {
+          html += `
+            <div class="list-item-compact ${item.type}">
+              <div>
+                <b>${item.category}</b>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-weight:bold; color:${item.type === 'income' ? '#10b981' : '#ef4444'}">
+                  ${item.type === 'income' ? '+' : '-'}${item.amount} ₽
+                </span>
+                <button class="delete-btn" onclick="deleteFinance('${item.id}')">🗑️</button>
+              </div>
             </div>
-            <div class="tx-amount expense">-1 250 ₽</div>
-        </div>
+          `;
+        });
+      }
+      container.innerHTML = html;
+    }
 
-        <div class="transaction-card">
-            <div class="tx-info">
-                <div class="tx-title">Перевод</div>
-                <div class="tx-category">Пополнение</div>
-            </div>
-            <div class="tx-amount income">+5 000 ₽</div>
-        </div>
-    </div>
-
-</div>
-
-<script>
-    // Инициализация Supabase (укажите свои SUPABASE_URL и SUPABASE_KEY)
-    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-    const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // Логика клика по карте
-    document.getElementById('openHistory').addEventListener('click', () => {
-        console.log('Переход к подробной истории операций...');
-    });
-</script>
-
+    checkUser();
+  </script>
 </body>
 </html>
