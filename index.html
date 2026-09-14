@@ -113,29 +113,7 @@
     .type-btn.active-income { background: #13281c; color: #34d399; border-color: #00c853; }
     .type-btn.active-transfer { background: #14223b; color: #60a5fa; border-color: #0072ff; }
 
-    /* Кликабельная плашка "История операций" */
-    .history-link-card { 
-      background: #1e1e1e; 
-      padding: 14px 16px; 
-      border-radius: 12px; 
-      border: 1px solid #333; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center;
-      gap: 12px;
-      cursor: pointer; 
-      font-weight: 600; 
-      font-size: 1rem;
-      user-select: none;
-      margin-bottom: 12px;
-      transition: background 0.15s ease, border-color 0.15s ease;
-    }
-    .history-link-card:active { background: #2a2a2a; border-color: #8b5cf6; }
-
     /* Разделитель даты с фиксированной суммой за день */
-    .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
-    .back-btn { background: none; border: none; color: #10b981; font-size: 1rem; width: auto; margin: 0; padding: 4px 8px; cursor: pointer; font-weight: bold; }
-    
     .date-divider { 
       font-size: 0.68rem; 
       font-weight: 600; 
@@ -143,14 +121,14 @@
       text-transform: uppercase; 
       letter-spacing: 0.5px; 
       border-bottom: 1px solid #262626; 
-      margin: 12px 0 4px 0; 
-      padding-bottom: 2px; 
+      margin: 12px 0 6px 0; 
+      padding-bottom: 3px; 
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    .list-item-compact { background: #1c1c1c; padding: 8px 10px; border-radius: 6px; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid #10b981; font-size: 0.85rem; }
+    .list-item-compact { background: #1c1c1c; padding: 8px 10px; border-radius: 6px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid #10b981; font-size: 0.85rem; }
     .list-item-compact.expense { border-left-color: #ef4444; }
     .list-item-compact.transfer { border-left-color: #3b82f6; }
     .delete-btn { background: none; border: none; color: #555; font-size: 0.8rem; padding: 2px 6px; width: auto; margin: 0; cursor: pointer; }
@@ -163,7 +141,7 @@
     .mini-footer button { width: auto; padding: 4px 8px; font-size: 0.75rem; background: #333; color: #ef4444; margin: 0; }
 
     /* Нижнее меню */
-    .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #181818; border-top: 1px solid #333; display: flex; justify-around; padding: 8px 0; z-index: 50; }
+    .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #181818; border-top: 1px solid #333; display: flex; justify-content: space-around; padding: 8px 0; z-index: 50; }
     .nav-btn { background: none; border: none; color: #888; font-size: 0.7rem; width: auto; margin: 0; padding: 4px; }
     .nav-btn.active { color: #10b981; font-weight: bold; }
   </style>
@@ -177,7 +155,6 @@
     <input type="password" id="password" placeholder="Пароль">
     <button onclick="signUp()">Зарегистрироваться</button>
     <button onclick="signIn()" style="background:#3b82f6; color:#fff;">Войти</button>
-    <div id="status-msg" style="margin-top:10px; font-size:0.85rem; text-align:center;"></div>
   </div>
 
   <!-- Главное приложение -->
@@ -187,7 +164,7 @@
       <div class="app-title">Life Control</div>
     </div>
 
-    <!-- Вкладка: Финансы (Свайп-контейнер с 2 экранами) -->
+    <!-- Вкладка: Финансы (Свайп-контейнер) -->
     <div id="tab-finance" class="tab-content">
       
       <div class="swipe-wrapper" id="financeSwipeWrapper">
@@ -220,10 +197,10 @@
             </div>
           </div>
 
-          <div class="swipe-hint">Смахивай влево для меню ➔</div>
+          <div class="swipe-hint">Смахивай влево для формы ➔</div>
         </div>
 
-        <!-- ЭКРАН 2: ПРИВЫЧНАЯ ФОРМА ФИНАНСОВ -->
+        <!-- ЭКРАН 2: ПРИВЫЧНАЯ ФОРМА ФИНАНСОВ И ИСТОРИЯ -->
         <div class="page-screen" id="page-form">
           <div class="swipe-hint" style="margin-top:0; margin-bottom:10px;">⬅ Смахивай вправо для голосовой кнопки</div>
 
@@ -293,29 +270,16 @@
             <button onclick="addFinance()">Добавить запись</button>
           </div>
 
-          <!-- Кликабельная плашка "История операций" (История разворачивается ТОЛЬКО при нажатии) -->
-          <div class="history-link-card" onclick="openHistoryScreen()">
-            <svg width="34" height="34" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-              <defs><linearGradient id="neonGradient" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#3B52F6"/><stop offset="45%" stop-color="#8A3CF4"/><stop offset="100%" stop-color="#E048C8"/></linearGradient></defs>
-              <path d="M 275,148 H 68 A 36,36 0 0,0 32,184 V 416 A 36,36 0 0,0 68,452 H 444 A 36,36 0 0,0 480,416 V 270" fill="none" stroke="url(#neonGradient)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
-              <line x1="32" y1="298" x2="480" y2="298" stroke="url(#neonGradient)" stroke-width="15"/>
-            </svg>
-            <span>Открыть историю операций</span>
+          <!-- Возвращенный блок истории прямо под формой -->
+          <div class="card" style="margin-bottom: 60px;">
+            <h2 style="font-size:1.05rem;">📋 История операций</h2>
+            <div id="grouped-finance-list">Загрузка...</div>
           </div>
 
         </div>
 
       </div>
 
-    </div>
-
-    <!-- ЭКРАН: Подробная история (Отдельный экран) -->
-    <div id="screen-history" class="tab-content hidden" style="padding: 15px;">
-      <div class="screen-header">
-        <button class="back-btn" onclick="closeHistoryScreen()">← Назад</button>
-        <h2 style="margin:0;">История операций</h2>
-      </div>
-      <div id="grouped-finance-list">Загрузка...</div>
     </div>
 
     <!-- Вкладка: Привычки -->
@@ -453,17 +417,6 @@
       if (evt) evt.currentTarget.classList.add('active');
     }
 
-    function openHistoryScreen() {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.getElementById('screen-history').classList.remove('hidden');
-      loadFullHistory();
-    }
-
-    function closeHistoryScreen() {
-      document.getElementById('screen-history').classList.add('hidden');
-      document.getElementById('tab-finance').classList.remove('hidden');
-    }
-
     async function checkUser() {
       const { data: { user } } = await dbClient.auth.getUser();
       if (user) {
@@ -471,7 +424,7 @@
         document.getElementById('auth-section').classList.add('hidden');
         document.getElementById('app-section').classList.remove('hidden');
         document.getElementById('user-email').innerText = user.email;
-        loadFinanceBalance();
+        loadFinanceData();
       } else {
         document.getElementById('auth-section').classList.remove('hidden');
         document.getElementById('app-section').classList.add('hidden');
@@ -514,40 +467,37 @@
       });
       document.getElementById('sub-chips-wrapper').classList.add('hidden');
 
-      loadFinanceBalance();
+      loadFinanceData();
     }
 
     async function deleteFinance(id) {
       if (!confirm('Удалить эту запись?')) return;
       await dbClient.from('finance').delete().eq('id', id);
-      loadFinanceBalance();
-      loadFullHistory();
+      loadFinanceData();
     }
 
-    // Загрузка только баланса для главного экрана
-    async function loadFinanceBalance() {
-      const { data } = await dbClient.from('finance').select('*');
+    // Загрузка баланса и списка историй на одном экране
+    async function loadFinanceData() {
+      const { data } = await dbClient.from('finance').select('*').order('created_at', { ascending: false });
+      
       const balanceEl = document.getElementById('total-balance');
-      if (!data || data.length === 0) { balanceEl.innerText = '0 ₽'; return; }
+      const container = document.getElementById('grouped-finance-list');
 
+      if (!data || data.length === 0) {
+        balanceEl.innerText = '0 ₽';
+        container.innerHTML = '<p style="color:#666; text-align:center;">Записей нет</p>';
+        return;
+      }
+
+      // Расчет общего баланса
       let total = 0;
       data.forEach(item => {
         if (item.type === 'income') total += Number(item.amount);
         else if (item.type === 'expense') total -= Number(item.amount);
       });
       balanceEl.innerText = `${total > 0 ? '+' : ''}${total} ₽`;
-    }
 
-    // Загрузка отдельного экрана истории с подсчетом суммы за каждый день
-    async function loadFullHistory() {
-      const { data } = await dbClient.from('finance').select('*').order('created_at', { ascending: false });
-      const container = document.getElementById('grouped-finance-list');
-      
-      if (!data || data.length === 0) {
-        container.innerHTML = '<p style="color:#666; text-align:center;">Записей нет</p>';
-        return;
-      }
-
+      // Группировка историй по дням
       const groups = {};
       data.forEach(item => {
         const d = new Date(item.created_at);
